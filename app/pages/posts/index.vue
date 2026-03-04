@@ -16,9 +16,20 @@ interface Post {
 const selectedKategorie = ref('')
 const searchQuery = ref('')
 
-const { data: posts, pending, execute } = await useApiGet<Post[]>(
-  `/posts?${selectedKategorie.value ? 'kategorie=' + encodeURIComponent(selectedKategorie.value) : ''}${searchQuery.value ? '&q=' + encodeURIComponent(searchQuery.value) : ''}`
-)
+const api_url = computed(() => {
+  const params = new URLSearchParams()
+  if (selectedKategorie.value) params.append('kategorie', selectedKategorie.value)
+  if (searchQuery.value) params.append('q', searchQuery.value)
+  const queryString = params.toString()
+  return queryString ? `/posts?${queryString}` : '/posts'
+})
+
+const { data: posts, pending, execute } = await useApiGet<Post[]>(api_url.value)
+
+// Re-fetch when filters change
+watch([searchQuery, selectedKategorie], () => {
+  execute()
+})
 </script>
 
 <template>

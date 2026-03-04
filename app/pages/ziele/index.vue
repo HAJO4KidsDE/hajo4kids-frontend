@@ -34,14 +34,16 @@ const { data: kategorien } = await useApiGet<{ id: number; name: string }[]>('/k
 
 const query = computed(() => {
   const params = new URLSearchParams()
-  if (searchQuery.value) params.append('q', searchQuery.value)
-  if (selectedStadt.value) params.append('stadt', selectedStadt.value)
-  if (selectedKategorie.value) params.append('kategorie', selectedKategorie.value)
+  if (searchQuery.value) params.append('filter', searchQuery.value)
+  if (selectedStadt.value) params.append('city', selectedStadt.value)
+  if (selectedKategorie.value) params.append('category', selectedKategorie.value)
+  // Status filter for public view - only show published
+  params.append('status', 'PUBLISHED')
   return params.toString()
 })
 
 const { data: result, pending, execute } = await useApiGet<{ data: Ziel[]; meta: Meta }>(
-  `/ziele?limit=12${query.value ? '&' + query.value : ''}`
+  `/ziele?${query.value}`
 )
 
 // Handle both paginated response (with meta) and direct array response

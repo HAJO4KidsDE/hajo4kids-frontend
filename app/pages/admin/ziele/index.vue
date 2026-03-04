@@ -13,9 +13,21 @@ onMounted(() => {
 const searchQuery = ref('')
 const statusFilter = ref('')
 
+const api_url = computed(() => {
+  let url = '/ziele?page=1&per_page=100'
+  if (statusFilter.value) url += `&status=${statusFilter.value}`
+  if (searchQuery.value) url += `&filter=${encodeURIComponent(searchQuery.value)}`
+  return url
+})
+
 const { data: result, pending, execute } = await useApiGet<{ data: any[]; meta: any }>(
-  `/ziele?limit=100${statusFilter.value ? '&status=' + statusFilter.value : ''}`
+  api_url.value
 )
+
+// Re-fetch when filters change
+watch([searchQuery, statusFilter], () => {
+  execute()
+})
 
 const ziele = computed(() => {
   if (Array.isArray(result.value)) return result.value
