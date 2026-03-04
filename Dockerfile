@@ -1,40 +1,29 @@
-# Build stage
-FROM node:20-alpine AS builder
+# Build stage: Node 22.12+ required by Nuxt 4; use npm install so optional
+# deps (e.g. oxc-parser linux bindings) are installed correctly in Docker.
+FROM node:22.12-bookworm-slim AS builder
 
 WORKDIR /app
 
-# Copy package files
-COPY package.json package-lock.json ./
+COPY package.json package-lock.json* ./
 
-# Install dependencies
-RUN npm ci
+# Use npm install (not npm ci) to avoid optional-deps bug in Docker
+# https://github.com/npm/cli/issues/4828
+RUN npm install
 
-# Copy source code
 COPY . .
-
-# Build for production
 RUN npm run build
 
-# Runtime stage
-FROM node:20-alpine AS runtime
+# Production stage: only .output + Node
+FROM node:22.12-alpine AS runner
 
 WORKDIR /app
 
-# Copy package files and install production dependencies
-COPY package.json package-lock.json ./
-RUN npm ci --omit=dev
+ENV NODE_ENV=production
+ENV HOST=0.0.0.0
+ENV PORT=3000
 
-# Copy built files
 COPY --from=builder /app/.output ./.output
-COPY --from=builder /app/public ./public
 
-# Expose port
 EXPOSE 3000
 
-# Set environment defaults
-ENV NODE_ENV=production
-ENV NUXT_HOST=0.0.0.0
-ENV NUXT_PORT=3000
-
-# Start the server
 CMD ["node", ".output/server/index.mjs"]
