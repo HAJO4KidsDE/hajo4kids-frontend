@@ -36,6 +36,7 @@ export function useAuth() {
   // Save user to localStorage
   function saveUserToStorage(user: User) {
     if (import.meta.client) {
+      console.log('[Auth] Saving user to localStorage:', user.username)
       localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user))
     }
   }
@@ -46,7 +47,9 @@ export function useAuth() {
       const stored = localStorage.getItem(USER_STORAGE_KEY)
       if (stored) {
         try {
-          return JSON.parse(stored)
+          const user = JSON.parse(stored)
+          console.log('[Auth] Loaded user from localStorage:', user.username)
+          return user
         } catch {
           localStorage.removeItem(USER_STORAGE_KEY)
         }
@@ -58,19 +61,29 @@ export function useAuth() {
   // Clear user from localStorage
   function clearUserFromStorage() {
     if (import.meta.client) {
+      console.log('[Auth] Clearing localStorage')
       localStorage.removeItem(USER_STORAGE_KEY)
     }
   }
 
   async function initSession() {
+    console.log('[Auth] initSession called', { 
+      initialized: authState.initialized, 
+      loading: authState.loading,
+      hasToken: !!tokenCookie.value 
+    })
+    
     // Prevent multiple initializations
     if (authState.initialized || authState.loading) {
+      console.log('[Auth] Already initialized or loading, skipping')
       return
     }
     
     authState.loading = true
     
     const token = tokenCookie.value
+    console.log('[Auth] Token from cookie:', token ? 'present' : 'missing')
+    
     if (token) {
       authState.token = token
       
@@ -79,22 +92,29 @@ export function useAuth() {
       if (storedUser) {
         authState.user = storedUser
         authState.isLoggedIn = true
+        console.log('[Auth] Restored user from localStorage, isLoggedIn:', authState.isLoggedIn)
       }
       
-      // Then validate with server in background
+      // Then validate with server
       try {
+        console.log('[Auth] Fetching user from server...')
         const response = await fetch(`${config.public.apiBase}/auth/me`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         })
         
+        console.log('[Auth] Server response:', response.status)
+        
         if (response.ok) {
           const data = await response.json()
+          console.log('[Auth] User data from server:', data.data)
           authState.user = data.data
           authState.isLoggedIn = true
           saveUserToStorage(data.data)
         } else {
+          const errorText = await response.text()
+          console.log('[Auth] Server error:', errorText)
           // Invalid token - clear everything
           authState.user = null
           authState.token = null
@@ -103,13 +123,22 @@ export function useAuth() {
           clearUserFromStorage()
         }
       } catch (error) {
-        console.error('Failed to fetch user:', error)
+        console.error('[Auth] Network error:', error)
         // Keep stored user on network error
+      }
+    } else {
+      console.log('[Auth] No token, checking localStorage anyway')
+      // No token but maybe user in localStorage (shouldn't happen normally)
+      const storedUser = loadUserFromStorage()
+      if (storedUser) {
+        // Token expired, clear storage
+        clearUserFromStorage()
       }
     }
     
     authState.initialized = true
     authState.loading = false
+    console.log('[Auth] initSession done, isLoggedIn:', authState.isLoggedIn)
   }
 
   async function login(email: string, password: string) {
@@ -125,6 +154,7 @@ export function useAuth() {
     }
 
     const data = await response.json()
+    console.log('[Auth] Login successful, token:', data.data.token?.substring(0, 10) + '...')
     
     // Set cookie first
     tokenCookie.value = data.data.token
