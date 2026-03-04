@@ -1,4 +1,5 @@
 <script setup lang="ts">
+const router = useRouter()
 const config = useRuntimeConfig()
 
 interface Ziel {
@@ -20,6 +21,9 @@ interface Kategorie {
   bild: string
 }
 
+const searchQuery = ref('')
+const searchStadt = ref('')
+
 const { data: featuredZieleRaw, pending: zielePending } = await useApiGet<{ data: Ziel[] } | Ziel[]>('/ziele?limit=6')
 const { data: kategorien, pending: kategorienPending } = await useApiGet<Kategorie[]>('/kategorien')
 
@@ -30,6 +34,13 @@ const featuredZiele = computed(() => {
   }
   return (featuredZieleRaw.value as { data: Ziel[] })?.data || []
 })
+
+function doSearch() {
+  const query: Record<string, string> = {}
+  if (searchQuery.value) query.q = searchQuery.value
+  if (searchStadt.value) query.stadt = searchStadt.value
+  router.push({ path: '/ziele', query })
+}
 </script>
 
 <template>
@@ -132,14 +143,16 @@ const featuredZiele = computed(() => {
     <section class="py-8">
       <Card>
         <CardContent class="p-4 md:p-6">
-          <form class="flex flex-col gap-4" @submit.prevent>
+          <form class="flex flex-col gap-4" @submit.prevent="doSearch">
             <!-- Search Row -->
             <div class="flex flex-col md:flex-row gap-3">
               <Input
+                v-model="searchQuery"
                 placeholder="Wonach suchst du?"
                 class="flex-1"
               />
               <Input
+                v-model="searchStadt"
                 placeholder="Stadt oder PLZ"
                 class="md:w-48"
               />

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 const route = useRoute()
+const router = useRouter()
 const config = useRuntimeConfig()
 
 interface Ziel {
@@ -13,7 +14,7 @@ interface Ziel {
   latitude: number
   longitude: number
   bilder: { id: number; filename: string }[]
-  kategorien: { id: number; name: string }[]
+  kategorien: { id: number; name: string; bild: string }[]
   rating: number
   favorits: number
   favorit: boolean
@@ -29,39 +30,63 @@ interface Meta {
 const searchQuery = ref(route.query.q as string || '')
 const selectedStadt = ref(route.query.stadt as string || '')
 const selectedKategorie = ref(route.query.kategorie as string || '')
+const pending = ref(false)
 
 const { data: kategorien } = await useApiGet<{ id: number; name: string }[]>('/kategorien')
 
-const query = computed(() => {
-  const params = new URLSearchParams()
-  if (searchQuery.value) params.append('filter', searchQuery.value)
-  if (selectedStadt.value) params.append('city', selectedStadt.value)
-  if (selectedKategorie.value) params.append('category', selectedKategorie.value)
-  // Status filter for public view - only show published
-  params.append('status', 'PUBLISHED')
-  return params.toString()
-})
+const result = ref<{ data: Ziel[]; meta: Meta } | null>(null)
 
-const { data: result, pending, execute } = await useApiGet<{ data: Ziel[]; meta: Meta }>(
-  `/ziele?${query.value}`
-)
+async function loadZiele() {
+  pending.value = true
+  try {
+    const params = new URLSearchParams()
+    if (searchQuery.value) params.append('filter', searchQuery.value)
+    if (selectedStadt.value) params.append('city', selectedStadt.value)
+    if (selectedKategorie.value) params.append('category', selectedKategorie.value)
+    params.append('status', 'PUBLISHED')
+    
+    const response = await fetch(`${config.public.apiBase}/ziele?${params.toString()}`)
+    const data = await response.json()
+    result.value = data
+    
+    // Update URL
+    const queryObj: Record<string, string> = {}
+    if (searchQuery.value) queryObj.q = searchQuery.value
+    if (selectedStadt.value) queryObj.stadt = selectedStadt.value
+    if (selectedKategorie.value) queryObj.kategorie = selectedKategorie.value
+    router.push({ query: queryObj })
+  } catch (e) {
+    console.error('Failed to load ziele', e)
+  } finally {
+    pending.value = false
+  }
+}
+
+// Initial load
+await loadZiele()
+
+// Debounced search
+let searchTimeout: NodeJS.Timeout
+function debouncedSearch() {
+  clearTimeout(searchTimeout)
+  searchTimeout = setTimeout(() => loadZiele(), 300)
+}
+
+watch([searchQuery, selectedStadt, selectedKategorie], debouncedSearch)
 
 // Handle both paginated response (with meta) and direct array response
 const ziele = computed(() => {
+  if (!result.value) return []
   if (Array.isArray(result.value)) {
     return result.value
   }
   return result.value?.data || []
 })
 const meta = computed(() => {
-  if (Array.isArray(result.value)) {
+  if (!result.value || Array.isArray(result.value)) {
     return undefined
   }
   return result.value?.meta
-})
-
-watch([searchQuery, selectedStadt, selectedKategorie], () => {
-  execute()
 })
 </script>
 

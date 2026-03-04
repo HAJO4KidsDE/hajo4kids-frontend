@@ -1,5 +1,6 @@
 <script setup lang="ts">
 const route = useRoute()
+const router = useRouter()
 const config = useRuntimeConfig()
 const auth = useAuth()
 
@@ -19,20 +20,43 @@ interface Ziel {
   latitude: number
   longitude: number
   bilder: { id: number; filename: string }[]
-  kategorien: { id: number; name: string }[]
+  kategorien: { id: number; name: string; bild: string }[]
   rating: number
   favorits: number
   favorit: boolean
 }
 
-const { data: ziel, error, pending } = await useApiGet<Ziel>(`/ziele/${route.params.id}`)
+const { data: ziel, error, pending, execute: reloadZiel } = await useApiGet<Ziel>(`/ziele/${route.params.id}`)
 
 async function toggleFavorit() {
   if (!auth.isLoggedIn.value) {
-    // Redirect to login
+    router.push('/auth/login')
     return
   }
-  // TODO: Implement favorit toggle
+  
+  try {
+    if (ziel.value?.favorit) {
+      // Remove from favorites
+      await fetch(`${config.public.apiBase}/favoriten/${ziel.value.id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${auth.token.value}`
+        }
+      })
+    } else {
+      // Add to favorites
+      await fetch(`${config.public.apiBase}/favoriten/${ziel.value.id}`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${auth.token.value}`
+        }
+      })
+    }
+    // Reload to get updated state
+    reloadZiel()
+  } catch (e) {
+    console.error('Failed to toggle favorit', e)
+  }
 }
 
 // Parse opening hours string into structured data
