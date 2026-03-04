@@ -34,6 +34,83 @@ async function toggleFavorit() {
   }
   // TODO: Implement favorit toggle
 }
+
+// Parse opening hours string into structured data
+function parseOeffnungszeiten(text: string): { day: string; hours: string }[] {
+  if (!text) return []
+  
+  // Split by common delimiters (comma, newline, <br>)
+  const lines = text.split(/[,\n]|<br\s*\/?>/i)
+    .map(l => l.trim())
+    .filter(l => l.length > 0)
+  
+  const result: { day: string; hours: string }[] = []
+  
+  for (const line of lines) {
+    // Match patterns like "Montag: 09:00–17:00 Uhr" or "Montag: 24 Stunden geöffnet"
+    const match = line.match(/^(\w+):\s*(.+)$/i)
+    if (match) {
+      result.push({
+        day: match[1],
+        hours: match[2].trim()
+      })
+    }
+  }
+  
+  return result
+}
+
+// Check if a day name matches today
+function isToday(dayName: string): boolean {
+  const days = ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag']
+  const today = days[new Date().getDay()]
+  return dayName === today
+}
+
+// Format hours for display
+function formatHours(hours: string): string {
+  // Clean up and format
+  return hours
+    .replace(/Uhr$/i, '')
+    .replace(/(\d{2}):(\d{2})\s*–\s*(\d{2}):(\d{2})/, '$1:$2 – $3:$4')
+    .trim()
+}
+
+// Check if currently open based on hours string
+function isCurrentlyOpen(hours: string): boolean {
+  const now = new Date()
+  const currentTime = now.getHours() * 60 + now.getMinutes()
+  
+  // Handle 24 hours
+  if (hours.includes('24 Stunden') || hours === '00:00–23:59') {
+    return true
+  }
+  
+  // Parse time range like "09:00–17:00"
+  const match = hours.match(/(\d{1,2}):(\d{2})\s*[–-]\s*(\d{1,2}):(\d{2})/)
+  if (match) {
+    const openHour = parseInt(match[1], 10)
+    const openMin = parseInt(match[2], 10)
+    const closeHour = parseInt(match[3], 10)
+    const closeMin = parseInt(match[4], 10)
+    
+    const openTime = openHour * 60 + openMin
+    const closeTime = closeHour * 60 + closeMin
+    
+    return currentTime >= openTime && currentTime <= closeTime
+  }
+  
+  return false
+}
+
+// Check if open today
+function isOpenToday(text: string): boolean {
+  if (!text) return false
+  const hours = parseOeffnungszeiten(text)
+  const todayEntry = hours.find(h => isToday(h.day))
+  if (!todayEntry) return false
+  return isCurrentlyOpen(todayEntry.hours)
+}
 </script>
 
 <template>
@@ -158,6 +235,46 @@ async function toggleFavorit() {
 
       <!-- Sidebar -->
       <div class="space-y-6">
+        <!-- Opening Hours -->
+        <Card v-if="ziel.oeffnungszeiten && parseOeffnungszeiten(ziel.oeffnungszeiten).length > 0">
+          <CardHeader class="pb-3">
+            <CardTitle class="flex items-center gap-2">
+              <svg class="h-5 w-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              Öffnungszeiten
+            </CardTitle>
+          </CardHeader>
+          <CardContent class="pt-0">
+            <div class="space-y-1.5 text-sm">
+              <div
+                v-for="(line, idx) in parseOeffnungszeiten(ziel.oeffnungszeiten)"
+                :key="idx"
+                class="flex justify-between items-center py-1 border-b border-border/50 last:border-0"
+                :class="{ 'bg-primary/5 -mx-2 px-2 rounded': isToday(line.day) }"
+              >
+                <span :class="{ 'font-semibold': isToday(line.day) }">{{ line.day }}</span>
+                <span
+                  class="text-right"
+                  :class="{
+                    'font-semibold text-primary': isToday(line.day),
+                    'text-green-600 dark:text-green-400': isCurrentlyOpen(line.hours) && isToday(line.day)
+                  }"
+                >
+                  {{ formatHours(line.hours) }}
+                </span>
+              </div>
+            </div>
+            <div v-if="isOpenToday(ziel.oeffnungszeiten)" class="mt-3 flex items-center gap-2 text-sm text-green-600 dark:text-green-400">
+              <span class="relative flex h-2 w-2">
+                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                <span class="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+              </span>
+              Jetzt geöffnet
+            </div>
+          </CardContent>
+        </Card>
+
         <!-- Contact Info -->
         <Card>
           <CardHeader>
@@ -186,12 +303,6 @@ async function toggleFavorit() {
               <a :href="ziel.webseite" target="_blank" class="text-primary hover:underline">
                 Webseite besuchen
               </a>
-            </div>
-            <div v-if="ziel.oeffnungszeiten" class="flex items-start gap-3">
-              <svg class="h-5 w-5 text-muted-foreground mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <span class="whitespace-pre-line">{{ ziel.oeffnungszeiten }}</span>
             </div>
           </CardContent>
         </Card>
