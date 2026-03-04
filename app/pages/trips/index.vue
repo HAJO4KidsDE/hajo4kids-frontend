@@ -72,7 +72,7 @@ const { data: trips, pending, execute } = await useApiGet<Trip[]>(`/trips${showM
           </CardHeader>
           <CardContent>
             <p v-if="trip.beschreibung" class="text-sm text-muted-foreground line-clamp-3 mb-4">
-              {{ trip.beschreibung }}
+              {{ trip.beschreibung.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').replace(/\s+/g, ' ').trim() }}
             </p>
             <div v-if="trip.ziele?.length" class="flex flex-wrap gap-1">
               <span

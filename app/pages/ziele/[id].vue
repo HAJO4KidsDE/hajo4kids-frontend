@@ -200,7 +200,8 @@ function isOpenToday(text: string): boolean {
             <CardTitle>Beschreibung</CardTitle>
           </CardHeader>
           <CardContent>
-            <p class="whitespace-pre-line">{{ ziel.beschreibung || ziel.auszug }}</p>
+            <div v-if="ziel.beschreibung" class="prose prose-sm dark:prose-invert max-w-none" v-html="ziel.beschreibung" />
+            <p v-else class="text-muted-foreground">{{ ziel.auszug }}</p>
           </CardContent>
         </Card>
 

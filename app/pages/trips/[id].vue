@@ -75,7 +75,7 @@ const { data: trip, error, pending } = await useApiGet<Trip>(`/trips/${route.par
         <CardTitle>Beschreibung</CardTitle>
       </CardHeader>
       <CardContent>
-        <p class="whitespace-pre-line">{{ trip.beschreibung }}</p>
+        <div class="prose prose-sm dark:prose-invert max-w-none" v-html="trip.beschreibung" />
       </CardContent>
     </Card>
 

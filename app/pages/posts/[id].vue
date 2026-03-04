@@ -79,9 +79,7 @@ const { data: post, error, pending } = await useApiGet<Post>(`/posts/${route.par
     <!-- Content -->
     <Card class="mb-8">
       <CardContent class="pt-6">
-        <div class="prose prose-neutral dark:prose-invert max-w-none">
-          <p class="whitespace-pre-line">{{ post.inhalt }}</p>
-        </div>
+        <div class="prose prose-neutral dark:prose-invert max-w-none" v-html="post.inhalt" />
       </CardContent>
     </Card>
 

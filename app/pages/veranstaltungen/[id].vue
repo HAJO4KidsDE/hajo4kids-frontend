@@ -68,7 +68,8 @@ const { data: veranstaltung, error, pending } = await useApiGet<Veranstaltung>(`
             <CardTitle>Beschreibung</CardTitle>
           </CardHeader>
           <CardContent>
-            <p class="whitespace-pre-line">{{ veranstaltung.beschreibung || 'Keine Beschreibung verfügbar.' }}</p>
+            <div v-if="veranstaltung.beschreibung" class="prose prose-sm dark:prose-invert max-w-none" v-html="veranstaltung.beschreibung" />
+            <p v-else class="text-muted-foreground">Keine Beschreibung verfügbar.</p>
           </CardContent>
         </Card>
       </div>
