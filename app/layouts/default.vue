@@ -38,6 +38,14 @@ const navigation = [
           >
             {{ item.name }}
           </NuxtLink>
+          <NuxtLink
+            v-if="auth.hasRole(['admin', 'reporter'])"
+            to="/admin"
+            class="rounded-full px-3 py-2 text-sm font-semibold text-white/90 transition-colors hover:bg-white/15 hover:text-white"
+            active-class="bg-white/20 text-white"
+          >
+            Admin
+          </NuxtLink>
         </nav>
 
         <!-- Auth Buttons -->
@@ -103,6 +111,14 @@ const navigation = [
               @click="mobileMenuOpen = false"
             >
               {{ item.name }}
+            </NuxtLink>
+            <NuxtLink
+              v-if="auth.hasRole(['admin', 'reporter'])"
+              to="/admin"
+              class="rounded-lg px-3 py-2 text-sm font-semibold text-white/90 hover:bg-white/15 hover:text-white"
+              @click="mobileMenuOpen = false"
+            >
+              Admin
             </NuxtLink>
           </nav>
           <div class="flex flex-col space-y-2 pt-2 border-t border-white/20">
