@@ -114,13 +114,8 @@ async function save() {
             />
           </div>
           <div>
-            <Label for="inhalt">Inhalt (HTML möglich)</Label>
-            <textarea
-              id="inhalt"
-              v-model="form.inhalt"
-              rows="10"
-              class="w-full mt-1 px-3 py-2 border rounded-md bg-background"
-            />
+            <Label>Inhalt</Label>
+            <RichEditor v-model="form.inhalt" class="mt-1" />
           </div>
         </CardContent>
       </Card>

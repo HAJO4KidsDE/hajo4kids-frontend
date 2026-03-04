@@ -302,13 +302,8 @@ async function deleteZiel() {
             />
           </div>
           <div>
-            <Label for="beschreibung">Beschreibung (HTML möglich)</Label>
-            <textarea
-              id="beschreibung"
-              v-model="form.beschreibung"
-              rows="6"
-              class="w-full mt-1 px-3 py-2 border rounded-md bg-background"
-            />
+            <Label>Beschreibung</Label>
+            <RichEditor v-model="form.beschreibung" class="mt-1" />
           </div>
           <div>
             <Label for="oeffnungszeiten">Öffnungszeiten</Label>

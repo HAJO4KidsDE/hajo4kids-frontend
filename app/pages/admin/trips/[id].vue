@@ -98,13 +98,8 @@ async function save() {
             <Input id="title" v-model="form.title" required />
           </div>
           <div>
-            <Label for="beschreibung">Beschreibung</Label>
-            <textarea
-              id="beschreibung"
-              v-model="form.beschreibung"
-              rows="4"
-              class="w-full mt-1 px-3 py-2 border rounded-md bg-background"
-            />
+            <Label>Beschreibung</Label>
+            <RichEditor v-model="form.beschreibung" class="mt-1" />
           </div>
           <div class="flex items-center gap-2">
             <input type="checkbox" id="public" v-model="form.is_public" />
