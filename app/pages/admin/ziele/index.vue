@@ -23,7 +23,7 @@ const ziele = computed(() => {
 })
 
 async function toggleStatus(ziel: any) {
-  const newStatus = ziel.status === 'published' ? 'draft' : 'published'
+  const newStatus = ziel.status === 'PUBLISHED' ? 'DESIGN' : 'PUBLISHED'
   try {
     await fetch(`/api/v1/ziele/${ziel.id}`, {
       method: 'PUT',
@@ -72,8 +72,8 @@ async function toggleStatus(ziel: any) {
             @change="execute"
           >
             <option value="">Alle Status</option>
-            <option value="published">Veröffentlicht</option>
-            <option value="draft">Entwurf</option>
+            <option value="PUBLISHED">Veröffentlicht</option>
+            <option value="DESIGN">Entwurf</option>
           </select>
         </div>
       </CardContent>
@@ -106,9 +106,9 @@ async function toggleStatus(ziel: any) {
               <div class="flex items-center gap-2 mt-1">
                 <span
                   class="px-2 py-0.5 text-xs rounded-full"
-                  :class="ziel.status === 'published' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'"
+                  :class="ziel.status === 'PUBLISHED' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'"
                 >
-                  {{ ziel.status === 'published' ? 'Veröffentlicht' : 'Entwurf' }}
+                  {{ ziel.status === 'PUBLISHED' ? 'Veröffentlicht' : 'Entwurf' }}
                 </span>
                 <span v-if="ziel.kategorien?.length" class="text-xs text-muted-foreground">
                   {{ ziel.kategorien.map((k: any) => k.name).join(', ') }}
