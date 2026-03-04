@@ -22,6 +22,9 @@ const authState = reactive<{
   loading: false
 })
 
+// Local storage key for user data
+const USER_STORAGE_KEY = 'hajo4kids_user'
+
 export function useAuth() {
   const config = useRuntimeConfig()
   const tokenCookie = useCookie<string | null>('auth_token', { 
@@ -29,6 +32,35 @@ export function useAuth() {
     path: '/',
     sameSite: 'lax'
   })
+
+  // Save user to localStorage
+  function saveUserToStorage(user: User) {
+    if (import.meta.client) {
+      localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user))
+    }
+  }
+
+  // Load user from localStorage
+  function loadUserFromStorage(): User | null {
+    if (import.meta.client) {
+      const stored = localStorage.getItem(USER_STORAGE_KEY)
+      if (stored) {
+        try {
+          return JSON.parse(stored)
+        } catch {
+          localStorage.removeItem(USER_STORAGE_KEY)
+        }
+      }
+    }
+    return null
+  }
+
+  // Clear user from localStorage
+  function clearUserFromStorage() {
+    if (import.meta.client) {
+      localStorage.removeItem(USER_STORAGE_KEY)
+    }
+  }
 
   async function initSession() {
     // Prevent multiple initializations
@@ -41,6 +73,15 @@ export function useAuth() {
     const token = tokenCookie.value
     if (token) {
       authState.token = token
+      
+      // Try to restore user from localStorage first (instant)
+      const storedUser = loadUserFromStorage()
+      if (storedUser) {
+        authState.user = storedUser
+        authState.isLoggedIn = true
+      }
+      
+      // Then validate with server in background
       try {
         const response = await fetch(`${config.public.apiBase}/auth/me`, {
           headers: {
@@ -52,13 +93,18 @@ export function useAuth() {
           const data = await response.json()
           authState.user = data.data
           authState.isLoggedIn = true
+          saveUserToStorage(data.data)
         } else {
-          // Invalid token - clear it
+          // Invalid token - clear everything
+          authState.user = null
           authState.token = null
+          authState.isLoggedIn = false
           tokenCookie.value = null
+          clearUserFromStorage()
         }
       } catch (error) {
         console.error('Failed to fetch user:', error)
+        // Keep stored user on network error
       }
     }
     
@@ -88,6 +134,9 @@ export function useAuth() {
     authState.user = data.data.user
     authState.isLoggedIn = true
     authState.initialized = true
+    
+    // Save user to localStorage for instant restore
+    saveUserToStorage(data.data.user)
 
     return data.data
   }
@@ -114,6 +163,7 @@ export function useAuth() {
     authState.isLoggedIn = false
     authState.initialized = true
     tokenCookie.value = null
+    clearUserFromStorage()
   }
 
   function hasRole(role: string | string[]): boolean {
