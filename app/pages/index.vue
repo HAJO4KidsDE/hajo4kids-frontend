@@ -8,6 +8,7 @@ interface Ziel {
   stadt: string
   auszug: string
   bilder: { id: number; filename: string }[]
+  kategorien: { id: number; name: string; bild: string }[]
   rating: number
   favorits: number
 }
@@ -16,6 +17,7 @@ interface Kategorie {
   id: number
   name: string
   beschreibung: string
+  bild: string
 }
 
 const { data: featuredZieleRaw, pending: zielePending } = await useApiGet<{ data: Ziel[] } | Ziel[]>('/ziele?limit=6')
@@ -97,7 +99,7 @@ const featuredZiele = computed(() => {
                 <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/15 text-primary">
                   <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v8m4-4H8" />
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    <path stroke-linecap="round" join="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                 </div>
                 <div class="min-w-0">
@@ -126,56 +128,54 @@ const featuredZiele = computed(() => {
       <div class="absolute right-0 top-0 h-full w-1/2 bg-gradient-to-l from-primary/6 to-transparent" />
     </section>
 
-    <!-- Search Section -->
-    <section class="py-12">
+    <!-- Search + Categories Combined -->
+    <section class="py-8">
       <Card>
-        <CardContent class="p-6">
-          <form class="flex flex-col md:flex-row gap-4" @submit.prevent>
-            <Input
-              placeholder="Wonach suchst du?"
-              class="flex-1"
-            />
-            <Input
-              placeholder="Stadt oder PLZ"
-              class="md:w-48"
-            />
-            <Button type="submit">
-              <svg class="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-              Suchen
-            </Button>
+        <CardContent class="p-4 md:p-6">
+          <form class="flex flex-col gap-4" @submit.prevent>
+            <!-- Search Row -->
+            <div class="flex flex-col md:flex-row gap-3">
+              <Input
+                placeholder="Wonach suchst du?"
+                class="flex-1"
+              />
+              <Input
+                placeholder="Stadt oder PLZ"
+                class="md:w-48"
+              />
+              <Button type="submit" class="md:w-auto">
+                <svg class="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+                Suchen
+              </Button>
+            </div>
+            
+            <!-- Categories as horizontal scrollable chips -->
+            <div v-if="!kategorienPending && kategorien?.length" class="flex items-center gap-2 overflow-x-auto pb-1 -mb-1">
+              <span class="text-sm text-muted-foreground whitespace-nowrap">Kategorien:</span>
+              <NuxtLink
+                to="/ziele"
+                class="whitespace-nowrap px-3 py-1 text-sm rounded-full border border-border hover:border-primary hover:text-primary transition-colors"
+              >
+                Alle
+              </NuxtLink>
+              <NuxtLink
+                v-for="kat in kategorien"
+                :key="kat.id"
+                :to="`/ziele?kategorie=${encodeURIComponent(kat.name)}`"
+                class="whitespace-nowrap px-3 py-1 text-sm rounded-full border border-border hover:border-primary hover:text-primary transition-colors"
+              >
+                {{ kat.name }}
+              </NuxtLink>
+            </div>
           </form>
         </CardContent>
       </Card>
     </section>
 
-    <!-- Categories Section -->
-    <section class="py-12">
-      <h2 class="text-2xl font-bold mb-6">Kategorien</h2>
-      <div v-if="kategorienPending" class="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div v-for="i in 4" :key="i" class="h-24 bg-muted rounded-lg animate-pulse" />
-      </div>
-      <div v-else class="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <NuxtLink
-          v-for="kat in kategorien"
-          :key="kat.id"
-          :to="`/ziele?kategorie=${encodeURIComponent(kat.name)}`"
-        >
-          <Card class="hover:border-primary/60 transition-colors cursor-pointer h-full">
-            <CardContent class="p-6 text-center">
-              <h3 class="font-semibold">{{ kat.name }}</h3>
-              <p v-if="kat.beschreibung" class="text-sm text-muted-foreground mt-1 line-clamp-2">
-                {{ kat.beschreibung }}
-              </p>
-            </CardContent>
-          </Card>
-        </NuxtLink>
-      </div>
-    </section>
-
     <!-- Featured Ziele Section -->
-    <section class="py-12">
+    <section class="py-8">
       <div class="flex justify-between items-center mb-6">
         <h2 class="text-2xl font-bold">Beliebte Ziele</h2>
         <NuxtLink to="/ziele">
@@ -204,10 +204,21 @@ const featuredZiele = computed(() => {
                 :alt="ziel.name"
                 class="w-full h-full object-cover"
               />
+              <img
+                v-else-if="ziel.kategorien?.length > 0 && ziel.kategorien[0].bild"
+                :src="ziel.kategorien[0].bild"
+                :alt="ziel.kategorien[0].name"
+                class="w-full h-full object-cover"
+              />
               <div v-else class="w-full h-full flex items-center justify-center text-muted-foreground">
                 <svg class="h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
+              </div>
+              <div v-if="ziel.kategorien?.length > 0" class="absolute top-2 left-2">
+                <span class="px-2 py-1 bg-primary/90 text-primary-foreground text-xs rounded-full">
+                  {{ ziel.kategorien[0].name }}
+                </span>
               </div>
             </div>
             <CardHeader>
