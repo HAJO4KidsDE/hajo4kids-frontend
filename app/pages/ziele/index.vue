@@ -34,7 +34,7 @@ const pending = ref(false)
 
 const { data: kategorien } = await useApiGet<{ id: number; name: string }[]>('/kategorien')
 
-const result = ref<{ data: Ziel[]; meta: Meta } | null>(null)
+const result = ref<{ data: Ziel[]; meta: Meta } | Ziel[] | null>(null)
 
 async function loadZiele() {
   pending.value = true
@@ -48,13 +48,6 @@ async function loadZiele() {
     const response = await fetch(`${config.public.apiBase}/ziele?${params.toString()}`)
     const data = await response.json()
     result.value = data
-    
-    // Update URL
-    const queryObj: Record<string, string> = {}
-    if (searchQuery.value) queryObj.q = searchQuery.value
-    if (selectedStadt.value) queryObj.stadt = selectedStadt.value
-    if (selectedKategorie.value) queryObj.kategorie = selectedKategorie.value
-    router.push({ query: queryObj })
   } catch (e) {
     console.error('Failed to load ziele', e)
   } finally {
@@ -62,14 +55,23 @@ async function loadZiele() {
   }
 }
 
-// Initial load
-await loadZiele()
+// Update URL without reload
+function updateUrl() {
+  const queryObj: Record<string, string> = {}
+  if (searchQuery.value) queryObj.q = searchQuery.value
+  if (selectedStadt.value) queryObj.stadt = selectedStadt.value
+  if (selectedKategorie.value) queryObj.kategorie = selectedKategorie.value
+  router.push({ query: queryObj })
+}
 
 // Debounced search
-let searchTimeout: NodeJS.Timeout
+let searchTimeout: ReturnType<typeof setTimeout> | null = null
 function debouncedSearch() {
-  clearTimeout(searchTimeout)
-  searchTimeout = setTimeout(() => loadZiele(), 300)
+  if (searchTimeout) clearTimeout(searchTimeout)
+  searchTimeout = setTimeout(() => {
+    loadZiele()
+    updateUrl()
+  }, 300)
 }
 
 watch([searchQuery, selectedStadt, selectedKategorie], debouncedSearch)
@@ -87,6 +89,11 @@ const meta = computed(() => {
     return undefined
   }
   return result.value?.meta
+})
+
+// Initial load on client
+onMounted(() => {
+  loadZiele()
 })
 </script>
 
