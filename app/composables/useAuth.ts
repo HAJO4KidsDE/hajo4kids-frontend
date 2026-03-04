@@ -13,17 +13,16 @@ interface AuthState {
   isLoggedIn: boolean
 }
 
-const state = useState<AuthState>('auth', () => ({
-  user: null,
-  token: null,
-  isLoggedIn: false,
-}))
-
 export function useAuth() {
   const config = useRuntimeConfig()
+  const state = useState<AuthState>('auth', () => ({
+    user: null,
+    token: null,
+    isLoggedIn: false,
+  }))
   const tokenCookie = useCookie('auth_token', { maxAge: 60 * 60 * 24 * 7 }) // 7 days
 
-  // Initialize from cookie
+  // Initialize from cookie on client side
   if (import.meta.client && tokenCookie.value && !state.value.token) {
     state.value.token = tokenCookie.value
     fetchUser()
