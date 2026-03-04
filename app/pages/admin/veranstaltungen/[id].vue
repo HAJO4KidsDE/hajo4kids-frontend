@@ -15,21 +15,31 @@ const form = ref({
   ziel_id: null as number | null
 })
 
+const loading = ref(false)
 const saving = ref(false)
 const error = ref('')
 
 // Load existing if editing
 if (!isNew.value) {
-  const { data: v } = await useApiGet<any>(`/veranstaltungen/${route.params.id}`)
-  if (v.value) {
-    form.value = {
-      title: v.value.title || '',
-      beschreibung: v.value.beschreibung || '',
-      start_datum: v.value.start_datum?.substring(0, 10) || '',
-      end_datum: v.value.end_datum?.substring(0, 10) || '',
-      ort: v.value.ort || '',
-      ziel_id: v.value.ziel_id || null
+  loading.value = true
+  try {
+    const response = await fetch(`${config.public.apiBase}/veranstaltungen/${route.params.id}`)
+    if (response.ok) {
+      const v = await response.json()
+      form.value = {
+        title: v.title || '',
+        beschreibung: v.beschreibung || '',
+        start_datum: v.start_datum?.substring(0, 10) || '',
+        end_datum: v.end_datum?.substring(0, 10) || '',
+        ort: v.ort || '',
+        ziel_id: v.ziel_id || null
+      }
     }
+  } catch (e) {
+    console.error('Failed to load veranstaltung', e)
+    error.value = 'Fehler beim Laden'
+  } finally {
+    loading.value = false
   }
 }
 
@@ -78,7 +88,11 @@ async function save() {
       </div>
     </div>
 
-    <form @submit.prevent="save" class="space-y-6">
+    <div v-if="loading" class="text-center py-12">
+      <p class="text-muted-foreground">Laden...</p>
+    </div>
+
+    <form v-else @submit.prevent="save" class="space-y-6">
       <Card>
         <CardHeader>
           <CardTitle>Details</CardTitle>

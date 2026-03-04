@@ -12,18 +12,28 @@ const form = ref({
   is_public: true
 })
 
+const loading = ref(false)
 const saving = ref(false)
 const error = ref('')
 
 // Load existing if editing
 if (!isNew.value) {
-  const { data: t } = await useApiGet<any>(`/trips/${route.params.id}`)
-  if (t.value) {
-    form.value = {
-      title: t.value.title || '',
-      beschreibung: t.value.beschreibung || '',
-      is_public: t.value.is_public ?? true
+  loading.value = true
+  try {
+    const response = await fetch(`${config.public.apiBase}/trips/${route.params.id}`)
+    if (response.ok) {
+      const t = await response.json()
+      form.value = {
+        title: t.title || '',
+        beschreibung: t.beschreibung || '',
+        is_public: t.is_public ?? true
+      }
     }
+  } catch (e) {
+    console.error('Failed to load trip', e)
+    error.value = 'Fehler beim Laden'
+  } finally {
+    loading.value = false
   }
 }
 
@@ -72,7 +82,11 @@ async function save() {
       </div>
     </div>
 
-    <form @submit.prevent="save" class="space-y-6">
+    <div v-if="loading" class="text-center py-12">
+      <p class="text-muted-foreground">Laden...</p>
+    </div>
+
+    <form v-else @submit.prevent="save" class="space-y-6">
       <Card>
         <CardHeader>
           <CardTitle>Details</CardTitle>

@@ -29,32 +29,41 @@ const loading = ref(false)
 const saving = ref(false)
 const error = ref('')
 
-// Load existing data if editing
-if (!isNew.value) {
-  const { data: ziel } = await useApiGet<any>(`/ziele/${route.params.id}`)
-  if (ziel.value) {
-    form.value = {
-      name: ziel.value.name || '',
-      slugname: ziel.value.slugname || '',
-      stadt: ziel.value.stadt || '',
-      adresse: ziel.value.adresse || '',
-      webseite: ziel.value.webseite || '',
-      telefonnummer: ziel.value.telefonnummer || '',
-      auszug: ziel.value.auszug || '',
-      beschreibung: ziel.value.beschreibung || '',
-      oeffnungszeiten: ziel.value.oeffnungszeiten || '',
-      vorteile: ziel.value.vorteile || '',
-      latitude: ziel.value.latitude,
-      longitude: ziel.value.longitude,
-      status: ziel.value.status || 'draft',
-      kategorien: ziel.value.kategorien?.map((k: any) => k.id) || [],
-      bilder: ziel.value.bilder?.map((b: any) => b.id) || []
-    }
-  }
-}
-
 // Load categories
 const { data: kategorien } = await useApiGet<any[]>('/kategorien')
+
+// Load existing data if editing
+if (!isNew.value) {
+  loading.value = true
+  try {
+    const response = await fetch(`${config.public.apiBase}/ziele/${route.params.id}`)
+    if (response.ok) {
+      const ziel = await response.json()
+      form.value = {
+        name: ziel.name || '',
+        slugname: ziel.slugname || '',
+        stadt: ziel.stadt || '',
+        adresse: ziel.adresse || '',
+        webseite: ziel.webseite || '',
+        telefonnummer: ziel.telefonnummer || '',
+        auszug: ziel.auszug || '',
+        beschreibung: ziel.beschreibung || '',
+        oeffnungszeiten: ziel.oeffnungszeiten || '',
+        vorteile: ziel.vorteile || '',
+        latitude: ziel.latitude,
+        longitude: ziel.longitude,
+        status: ziel.status || 'draft',
+        kategorien: ziel.kategorien?.map((k: any) => k.id) || [],
+        bilder: ziel.bilder?.map((b: any) => b.id) || []
+      }
+    }
+  } catch (e) {
+    console.error('Failed to load ziel', e)
+    error.value = 'Fehler beim Laden des Ziels'
+  } finally {
+    loading.value = false
+  }
+}
 
 async function save() {
   saving.value = true
@@ -87,19 +96,26 @@ async function save() {
   }
 }
 
-// Auto-generate slug from name
-watch(() => form.value.name, (name) => {
-  if (isNew.value && name) {
-    form.value.slugname = name
-      .toLowerCase()
-      .replace(/ä/g, 'ae')
-      .replace(/ö/g, 'oe')
-      .replace(/ü/g, 'ue')
-      .replace(/ß/g, 'ss')
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-|-$/g, '')
+async function deleteZiel() {
+  if (!confirm('Möchten Sie dieses Ziel wirklich löschen?')) return
+
+  try {
+    const response = await fetch(`${config.public.apiBase}/ziele/${route.params.id}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${auth.token.value}`
+      }
+    })
+
+    if (!response.ok) {
+      throw new Error('Löschen fehlgeschlagen')
+    }
+
+    router.push('/admin/ziele')
+  } catch (e: any) {
+    error.value = e.message
   }
-})
+}
 </script>
 
 <template>
@@ -112,15 +128,18 @@ watch(() => form.value.name, (name) => {
       </NuxtLink>
       <div>
         <h1 class="text-3xl font-bold">{{ isNew ? 'Neues Ziel' : 'Ziel bearbeiten' }}</h1>
-        <p class="text-muted-foreground">{{ form.name || 'Unbenannt' }}</p>
       </div>
     </div>
 
-    <form @submit.prevent="save" class="space-y-6">
-      <!-- Basic Info -->
+    <div v-if="loading" class="text-center py-12">
+      <p class="text-muted-foreground">Laden...</p>
+    </div>
+
+    <form v-else @submit.prevent="save" class="space-y-6">
+      <!-- Basisdaten -->
       <Card>
         <CardHeader>
-          <CardTitle>Grunddaten</CardTitle>
+          <CardTitle>Basisdaten</CardTitle>
         </CardHeader>
         <CardContent class="space-y-4">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -129,8 +148,8 @@ watch(() => form.value.name, (name) => {
               <Input id="name" v-model="form.name" required />
             </div>
             <div>
-              <Label for="slugname">URL-Slug</Label>
-              <Input id="slugname" v-model="form.slugname" />
+              <Label for="slugname">Slug</Label>
+              <Input id="slugname" v-model="form.slugname" placeholder="automatisch generiert" />
             </div>
           </div>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -146,53 +165,17 @@ watch(() => form.value.name, (name) => {
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label for="webseite">Webseite</Label>
-              <Input id="webseite" v-model="form.webseite" type="url" />
+              <Input id="webseite" v-model="form.webseite" type="url" placeholder="https://" />
             </div>
             <div>
-              <Label for="telefonnummer">Telefon</Label>
-              <Input id="telefonnummer" v-model="form.telefonnummer" />
-            </div>
-          </div>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label for="latitude">Latitude</Label>
-              <Input id="latitude" v-model.number="form.latitude" type="number" step="any" />
-            </div>
-            <div>
-              <Label for="longitude">Longitude</Label>
-              <Input id="longitude" v-model.number="form.longitude" type="number" step="any" />
+              <Label for="telefon">Telefon</Label>
+              <Input id="telefon" v-model="form.telefonnummer" />
             </div>
           </div>
         </CardContent>
       </Card>
 
-      <!-- Categories -->
-      <Card>
-        <CardHeader>
-          <CardTitle>Kategorien</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div class="flex flex-wrap gap-2">
-            <label
-              v-for="kat in kategorien"
-              :key="kat.id"
-              class="flex items-center gap-2 px-3 py-2 border rounded-lg cursor-pointer transition-colors"
-              :class="form.kategorien.includes(kat.id) ? 'bg-primary/10 border-primary' : 'hover:bg-muted'"
-            >
-              <input
-                type="checkbox"
-                :value="kat.id"
-                :checked="form.kategorien.includes(kat.id)"
-                @change="form.kategorien.includes(kat.id) ? form.kategorien = form.kategorien.filter(id => id !== kat.id) : form.kategorien.push(kat.id)"
-                class="sr-only"
-              />
-              <span>{{ kat.name }}</span>
-            </label>
-          </div>
-        </CardContent>
-      </Card>
-
-      <!-- Description -->
+      <!-- Beschreibung -->
       <Card>
         <CardHeader>
           <CardTitle>Beschreibung</CardTitle>
@@ -215,7 +198,6 @@ watch(() => form.value.name, (name) => {
               v-model="form.beschreibung"
               rows="6"
               class="w-full mt-1 px-3 py-2 border rounded-md bg-background"
-              placeholder="Vollständige Beschreibung"
             />
           </div>
           <div>
@@ -223,19 +205,63 @@ watch(() => form.value.name, (name) => {
             <textarea
               id="oeffnungszeiten"
               v-model="form.oeffnungszeiten"
-              rows="4"
+              rows="3"
               class="w-full mt-1 px-3 py-2 border rounded-md bg-background"
-              placeholder="Montag: 09:00–17:00 Uhr"
+              placeholder="Mo-Fr: 9:00-18:00&#10;Sa: 10:00-14:00"
             />
           </div>
           <div>
-            <Label for="vorteile">Vorteile / Besonders geeignet für</Label>
+            <Label for="vorteile">Vorteile / Besonderheiten</Label>
             <textarea
               id="vorteile"
               v-model="form.vorteile"
               rows="3"
               class="w-full mt-1 px-3 py-2 border rounded-md bg-background"
             />
+          </div>
+        </CardContent>
+      </Card>
+
+      <!-- Standort -->
+      <Card>
+        <CardHeader>
+          <CardTitle>Standort</CardTitle>
+        </CardHeader>
+        <CardContent class="space-y-4">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label for="lat">Latitude</Label>
+              <Input id="lat" v-model.number="form.latitude" type="number" step="any" />
+            </div>
+            <div>
+              <Label for="lng">Longitude</Label>
+              <Input id="lng" v-model.number="form.longitude" type="number" step="any" />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <!-- Kategorien -->
+      <Card>
+        <CardHeader>
+          <CardTitle>Kategorien</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div class="flex flex-wrap gap-2">
+            <label
+              v-for="kat in kategorien"
+              :key="kat.id"
+              class="flex items-center gap-2 px-3 py-1 border rounded-md cursor-pointer hover:bg-accent"
+              :class="{ 'bg-primary text-primary-foreground': form.kategorien.includes(kat.id) }"
+            >
+              <input
+                type="checkbox"
+                :value="kat.id"
+                v-model="form.kategorien"
+                class="sr-only"
+              />
+              {{ kat.name }}
+            </label>
           </div>
         </CardContent>
       </Card>
@@ -259,19 +285,27 @@ watch(() => form.value.name, (name) => {
         </CardContent>
       </Card>
 
-      <!-- Error -->
       <div v-if="error" class="p-4 bg-destructive/10 text-destructive rounded-lg">
         {{ error }}
       </div>
 
-      <!-- Actions -->
-      <div class="flex justify-end gap-4">
-        <NuxtLink to="/admin/ziele">
-          <Button type="button" variant="outline">Abbrechen</Button>
-        </NuxtLink>
-        <Button type="submit" :loading="saving">
-          {{ saving ? 'Speichern...' : 'Speichern' }}
-        </Button>
+      <div class="flex justify-between">
+        <div>
+          <Button
+            v-if="!isNew"
+            type="button"
+            variant="destructive"
+            @click="deleteZiel"
+          >
+            Löschen
+          </Button>
+        </div>
+        <div class="flex gap-4">
+          <NuxtLink to="/admin/ziele">
+            <Button type="button" variant="outline">Abbrechen</Button>
+          </NuxtLink>
+          <Button type="submit" :loading="saving">Speichern</Button>
+        </div>
       </div>
     </form>
   </div>

@@ -15,21 +15,31 @@ const form = ref({
   status: 'draft'
 })
 
+const loading = ref(false)
 const saving = ref(false)
 const error = ref('')
 
 // Load existing if editing
 if (!isNew.value) {
-  const { data: p } = await useApiGet<any>(`/posts/${route.params.id}`)
-  if (p.value) {
-    form.value = {
-      title: p.value.title || '',
-      excerpt: p.value.excerpt || '',
-      inhalt: p.value.inhalt || '',
-      kategorie: p.value.kategorie || '',
-      tags: p.value.tags || '',
-      status: p.value.status || 'draft'
+  loading.value = true
+  try {
+    const response = await fetch(`${config.public.apiBase}/posts/${route.params.id}`)
+    if (response.ok) {
+      const p = await response.json()
+      form.value = {
+        title: p.title || '',
+        excerpt: p.excerpt || '',
+        inhalt: p.inhalt || '',
+        kategorie: p.kategorie || '',
+        tags: p.tags || '',
+        status: p.status || 'draft'
+      }
     }
+  } catch (e) {
+    console.error('Failed to load post', e)
+    error.value = 'Fehler beim Laden'
+  } finally {
+    loading.value = false
   }
 }
 
@@ -78,7 +88,11 @@ async function save() {
       </div>
     </div>
 
-    <form @submit.prevent="save" class="space-y-6">
+    <div v-if="loading" class="text-center py-12">
+      <p class="text-muted-foreground">Laden...</p>
+    </div>
+
+    <form v-else @submit.prevent="save" class="space-y-6">
       <Card>
         <CardHeader>
           <CardTitle>Inhalt</CardTitle>
