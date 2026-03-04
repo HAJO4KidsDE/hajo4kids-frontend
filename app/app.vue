@@ -1,5 +1,5 @@
 <template>
-  <div v-if="!auth.initialized.value" class="min-h-screen flex items-center justify-center bg-[var(--bg-primary)]">
+  <div v-if="!initialized" class="min-h-screen flex items-center justify-center bg-[var(--bg-primary)]">
     <div class="text-center">
       <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--accent-primary)] mx-auto"></div>
       <p class="mt-4 text-[var(--text-secondary)]">Wird geladen...</p>
@@ -11,12 +11,12 @@
 </template>
 
 <script setup lang="ts">
-const auth = useAuth()
+const { initialized, initSession } = useAuth()
 
 // Initialize auth on client-side
 onMounted(async () => {
-  if (!auth.initialized.value) {
-    await auth.initSession()
+  if (!initialized.value) {
+    await initSession()
   }
 })
 </script>
