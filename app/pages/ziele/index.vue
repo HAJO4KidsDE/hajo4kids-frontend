@@ -140,23 +140,25 @@ const meta = computed(() => {
     
     <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       <NuxtLink
-        v-for="ziel in ziele"
+        v-for="(ziel, index) in ziele"
         :key="ziel.id"
         :to="`/ziele/${ziel.slugname || ziel.id}`"
+        class="animate-fade-in-up"
+        :style="{ animationDelay: `${index * 50}ms` }"
       >
-        <Card class="overflow-hidden hover:shadow-lg transition-shadow h-full">
+        <Card class="overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300 h-full group">
           <div class="aspect-video bg-muted relative">
             <img
               v-if="ziel.bilder?.length > 0"
               :src="`${config.public.apiBase.replace('/api/v1', '')}/media/bilder/${ziel.bilder[0].id}`"
               :alt="ziel.name"
-              class="w-full h-full object-cover"
+              class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
             />
             <img
               v-else-if="ziel.kategorien?.length > 0 && ziel.kategorien[0].bild"
               :src="ziel.kategorien[0].bild"
               :alt="ziel.kategorien[0].name"
-              class="w-full h-full object-cover"
+              class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
             />
             <div v-else class="w-full h-full flex items-center justify-center text-muted-foreground">
               <svg class="h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -164,7 +166,7 @@ const meta = computed(() => {
               </svg>
             </div>
             <div v-if="ziel.kategorien?.length > 0" class="absolute top-2 left-2">
-              <span class="px-2 py-1 bg-primary/90 text-primary-foreground text-xs rounded-full">
+              <span class="px-2 py-1 bg-primary/90 text-primary-foreground text-xs rounded-full backdrop-blur-sm">
                 {{ ziel.kategorien[0].name }}
               </span>
             </div>
@@ -223,3 +225,20 @@ const meta = computed(() => {
     </div>
   </div>
 </template>
+
+<style scoped>
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.4s ease-out both;
+}
+</style>

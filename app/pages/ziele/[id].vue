@@ -26,7 +26,10 @@ interface Ziel {
   favorit: boolean
 }
 
-const { data: ziel, error, pending, execute: reloadZiel } = await useApiGet<Ziel>(`/ziele/${route.params.id}`)
+const { data: ziel, error, pending } = await useApiGet<Ziel>(`/ziele/${route.params.id}`)
+
+// Optimistic favorite toggle
+const favoritLoading = ref(false)
 
 async function toggleFavorit() {
   if (!auth.isLoggedIn.value) {
@@ -34,9 +37,17 @@ async function toggleFavorit() {
     return
   }
   
+  if (!ziel.value || favoritLoading.value) return
+  
+  favoritLoading.value = true
+  const wasFavorit = ziel.value.favorit
+  
+  // Optimistic update
+  ziel.value.favorit = !wasFavorit
+  ziel.value.favorits = (ziel.value.favorits || 0) + (wasFavorit ? -1 : 1)
+  
   try {
-    if (ziel.value?.favorit) {
-      // Remove from favorites
+    if (wasFavorit) {
       await fetch(`${config.public.apiBase}/favoriten/${ziel.value.id}`, {
         method: 'DELETE',
         headers: {
@@ -44,7 +55,6 @@ async function toggleFavorit() {
         }
       })
     } else {
-      // Add to favorites
       await fetch(`${config.public.apiBase}/favoriten/${ziel.value.id}`, {
         method: 'POST',
         headers: {
@@ -52,10 +62,13 @@ async function toggleFavorit() {
         }
       })
     }
-    // Reload to get updated state
-    reloadZiel()
   } catch (e) {
+    // Revert on error
+    ziel.value.favorit = wasFavorit
+    ziel.value.favorits = (ziel.value.favorits || 0) + (wasFavorit ? 1 : -1)
     console.error('Failed to toggle favorit', e)
+  } finally {
+    favoritLoading.value = false
   }
 }
 
@@ -150,9 +163,9 @@ function isOpenToday(text: string): boolean {
     </NuxtLink>
   </div>
   
-  <div v-else-if="ziel">
+  <article v-else-if="ziel" class="animate-fade-in">
     <!-- Header -->
-    <div class="mb-8">
+    <div class="mb-8 animate-slide-up" style="animation-delay: 0ms">
       <NuxtLink to="/ziele" class="text-sm text-muted-foreground hover:text-primary flex items-center gap-1 mb-4">
         <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
@@ -181,29 +194,43 @@ function isOpenToday(text: string): boolean {
         <div class="flex gap-2">
           <Button
             :variant="ziel.favorit ? 'default' : 'outline'"
+            :disabled="favoritLoading"
             @click="toggleFavorit"
+            class="transition-all duration-300"
+            :class="{ 'scale-105': ziel.favorit }"
           >
-            {{ ziel.favorit ? '❤️ Favorit' : '🤍 Merken' }}
+            <span class="inline-flex items-center gap-2">
+              <svg 
+                v-if="favoritLoading" 
+                class="animate-spin h-4 w-4" 
+                fill="none" viewBox="0 0 24 24"
+              >
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              <span v-else class="text-lg">{{ ziel.favorit ? '❤️' : '🤍' }}</span>
+              <span>{{ ziel.favorit ? 'Favorit' : 'Merken' }}</span>
+            </span>
           </Button>
         </div>
       </div>
     </div>
 
     <!-- Gallery -->
-    <div class="mb-8">
+    <div class="mb-8 animate-slide-up" style="animation-delay: 100ms">
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div class="md:col-span-2 aspect-video rounded-lg overflow-hidden bg-muted">
+        <div class="md:col-span-2 aspect-video rounded-lg overflow-hidden bg-muted group">
           <img
             v-if="ziel.bilder?.length > 0"
             :src="`${config.public.apiBase.replace('/api/v1', '')}/media/bilder/${ziel.bilder[0].id}`"
             :alt="ziel.name"
-            class="w-full h-full object-cover"
+            class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
           />
           <img
             v-else-if="ziel.kategorien?.length > 0 && ziel.kategorien[0].bild"
             :src="ziel.kategorien[0].bild"
             :alt="ziel.kategorien[0].name"
-            class="w-full h-full object-cover"
+            class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
           />
           <div v-else class="w-full h-full flex items-center justify-center text-muted-foreground">
             <svg class="h-16 w-16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -213,14 +240,15 @@ function isOpenToday(text: string): boolean {
         </div>
         <div v-if="ziel.bilder?.length > 1" class="grid grid-cols-2 gap-4">
           <div
-            v-for="bild in ziel.bilder.slice(1, 5)"
+            v-for="(bild, index) in ziel.bilder.slice(1, 5)"
             :key="bild.id"
-            class="aspect-square rounded-lg overflow-hidden bg-muted"
+            class="aspect-square rounded-lg overflow-hidden bg-muted group"
+            :style="{ animationDelay: `${150 + index * 50}ms` }"
           >
             <img
               :src="`${config.public.apiBase.replace('/api/v1', '')}/media/bilder/${bild.id}`"
               :alt="ziel.name"
-              class="w-full h-full object-cover"
+              class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
             />
           </div>
         </div>
@@ -228,7 +256,7 @@ function isOpenToday(text: string): boolean {
     </div>
 
     <!-- Content -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 animate-slide-up" style="animation-delay: 200ms">
       <div class="lg:col-span-2 space-y-8">
         <!-- Description -->
         <Card>
@@ -357,5 +385,35 @@ function isOpenToday(text: string): boolean {
         </Card>
       </div>
     </div>
-  </div>
+  </article>
 </template>
+
+<style scoped>
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out;
+}
+
+.animate-slide-up {
+  animation: slide-up 0.4s ease-out both;
+}
+</style>
