@@ -25,7 +25,8 @@ if (!isNew.value) {
   try {
     const response = await fetch(`${config.public.apiBase}/veranstaltungen/${route.params.id}`)
     if (response.ok) {
-      const v = await response.json()
+      const result = await response.json()
+      const v = result.data || result
       form.value = {
         title: v.title || '',
         beschreibung: v.beschreibung || '',

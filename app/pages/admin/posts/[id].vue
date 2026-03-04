@@ -25,7 +25,8 @@ if (!isNew.value) {
   try {
     const response = await fetch(`${config.public.apiBase}/posts/${route.params.id}`)
     if (response.ok) {
-      const p = await response.json()
+      const result = await response.json()
+      const p = result.data || result
       form.value = {
         title: p.title || '',
         excerpt: p.excerpt || '',

@@ -38,7 +38,8 @@ if (!isNew.value) {
   try {
     const response = await fetch(`${config.public.apiBase}/ziele/${route.params.id}`)
     if (response.ok) {
-      const ziel = await response.json()
+      const result = await response.json()
+      const ziel = result.data || result // Handle both {data: {...}} and {...}
       form.value = {
         name: ziel.name || '',
         slugname: ziel.slugname || '',

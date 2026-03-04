@@ -22,7 +22,8 @@ if (!isNew.value) {
   try {
     const response = await fetch(`${config.public.apiBase}/trips/${route.params.id}`)
     if (response.ok) {
-      const t = await response.json()
+      const result = await response.json()
+      const t = result.data || result
       form.value = {
         title: t.title || '',
         beschreibung: t.beschreibung || '',
