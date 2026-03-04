@@ -11,6 +11,7 @@ interface AuthState {
   user: User | null
   token: string | null
   isLoggedIn: boolean
+  initialized: boolean
 }
 
 export function useAuth() {
@@ -19,13 +20,20 @@ export function useAuth() {
     user: null,
     token: null,
     isLoggedIn: false,
+    initialized: false,
   }))
-  const tokenCookie = useCookie('auth_token', { maxAge: 60 * 60 * 24 * 7 }) // 7 days
+  const tokenCookie = useCookie('auth_token', { 
+    maxAge: 60 * 60 * 24 * 7, // 7 days
+    path: '/'
+  })
 
-  // Initialize from cookie on client side
-  if (import.meta.client && tokenCookie.value && !state.value.token) {
-    state.value.token = tokenCookie.value
-    fetchUser()
+  async function initSession() {
+    // Check if we have a token in cookie but state is not initialized
+    if (tokenCookie.value && !state.value.initialized) {
+      state.value.token = tokenCookie.value
+      await fetchUser()
+    }
+    state.value.initialized = true
   }
 
   async function login(email: string, password: string) {
@@ -37,13 +45,14 @@ export function useAuth() {
 
     if (!response.ok) {
       const error = await response.json()
-      throw new Error(error.error || 'Login failed')
+      throw new Error(error.error || 'Login fehlgeschlagen')
     }
 
     const data = await response.json()
     state.value.token = data.data.token
     state.value.user = data.data.user
     state.value.isLoggedIn = true
+    state.value.initialized = true
     tokenCookie.value = data.data.token
 
     return data.data
@@ -58,7 +67,7 @@ export function useAuth() {
 
     if (!response.ok) {
       const error = await response.json()
-      throw new Error(error.error || 'Registration failed')
+      throw new Error(error.error || 'Registrierung fehlgeschlagen')
     }
 
     const data = await response.json()
@@ -66,23 +75,27 @@ export function useAuth() {
   }
 
   async function fetchUser() {
-    if (!state.value.token) return
+    const token = state.value.token || tokenCookie.value
+    if (!token) return
 
     try {
       const response = await fetch(`${config.public.apiBase}/auth/me`, {
         headers: {
-          Authorization: `Bearer ${state.value.token}`,
+          Authorization: `Bearer ${token}`,
         },
       })
 
       if (response.ok) {
         const data = await response.json()
         state.value.user = data.data
+        state.value.token = token
         state.value.isLoggedIn = true
       } else {
+        // Token invalid - clear everything
         logout()
       }
     } catch (error) {
+      console.error('Failed to fetch user:', error)
       logout()
     }
   }
@@ -91,6 +104,7 @@ export function useAuth() {
     state.value.user = null
     state.value.token = null
     state.value.isLoggedIn = false
+    state.value.initialized = true // Keep initialized to show logged out state
     tokenCookie.value = null
   }
 
@@ -106,10 +120,12 @@ export function useAuth() {
     user: computed(() => state.value.user),
     token: computed(() => state.value.token),
     isLoggedIn: computed(() => state.value.isLoggedIn),
+    initialized: computed(() => state.value.initialized),
     login,
     register,
     logout,
     fetchUser,
+    initSession,
     hasRole,
   }
 }
