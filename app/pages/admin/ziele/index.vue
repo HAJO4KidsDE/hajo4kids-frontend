@@ -1,6 +1,7 @@
 <script setup lang="ts">
 const auth = useAuth()
 const router = useRouter()
+const config = useRuntimeConfig()
 
 // Check permissions
 onMounted(() => {
@@ -13,7 +14,7 @@ const searchQuery = ref('')
 const statusFilter = ref('')
 
 const { data: result, pending, execute } = await useApiGet<{ data: any[]; meta: any }>(
-  `/admin/ziele?${statusFilter.value ? 'status=' + statusFilter.value : ''}`
+  `/ziele?limit=100${statusFilter.value ? '&status=' + statusFilter.value : ''}`
 )
 
 const ziele = computed(() => {
@@ -94,7 +95,7 @@ async function toggleStatus(ziel: any) {
             <div class="w-16 h-16 bg-muted rounded-lg overflow-hidden">
               <img
                 v-if="ziel.bilder?.length"
-                :src="`/media/bilder/${ziel.bilder[0].id}`"
+                :src="`${config.public.apiBase.replace('/api/v1', '')}/media/bilder/${ziel.bilder[0].id}`"
                 :alt="ziel.name"
                 class="w-full h-full object-cover"
               />
