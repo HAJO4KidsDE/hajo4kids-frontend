@@ -7,33 +7,63 @@ interface User {
   last_name?: string
 }
 
-interface AuthState {
+// Global reactive state - shared across all components
+const authState = reactive<{
   user: User | null
   token: string | null
   isLoggedIn: boolean
   initialized: boolean
-}
+  loading: boolean
+}>({
+  user: null,
+  token: null,
+  isLoggedIn: false,
+  initialized: false,
+  loading: false
+})
 
 export function useAuth() {
   const config = useRuntimeConfig()
-  const state = useState<AuthState>('auth', () => ({
-    user: null,
-    token: null,
-    isLoggedIn: false,
-    initialized: false,
-  }))
-  const tokenCookie = useCookie('auth_token', { 
+  const tokenCookie = useCookie<string | null>('auth_token', { 
     maxAge: 60 * 60 * 24 * 7, // 7 days
-    path: '/'
+    path: '/',
+    sameSite: 'lax'
   })
 
   async function initSession() {
-    // Check if we have a token in cookie but state is not initialized
-    if (tokenCookie.value && !state.value.initialized) {
-      state.value.token = tokenCookie.value
-      await fetchUser()
+    // Prevent multiple initializations
+    if (authState.initialized || authState.loading) {
+      return
     }
-    state.value.initialized = true
+    
+    authState.loading = true
+    
+    const token = tokenCookie.value
+    if (token) {
+      authState.token = token
+      try {
+        const response = await fetch(`${config.public.apiBase}/auth/me`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
+        
+        if (response.ok) {
+          const data = await response.json()
+          authState.user = data.data
+          authState.isLoggedIn = true
+        } else {
+          // Invalid token - clear it
+          authState.token = null
+          tokenCookie.value = null
+        }
+      } catch (error) {
+        console.error('Failed to fetch user:', error)
+      }
+    }
+    
+    authState.initialized = true
+    authState.loading = false
   }
 
   async function login(email: string, password: string) {
@@ -49,11 +79,15 @@ export function useAuth() {
     }
 
     const data = await response.json()
-    state.value.token = data.data.token
-    state.value.user = data.data.user
-    state.value.isLoggedIn = true
-    state.value.initialized = true
+    
+    // Set cookie first
     tokenCookie.value = data.data.token
+    
+    // Then update state
+    authState.token = data.data.token
+    authState.user = data.data.user
+    authState.isLoggedIn = true
+    authState.initialized = true
 
     return data.data
   }
@@ -74,57 +108,31 @@ export function useAuth() {
     return data.data
   }
 
-  async function fetchUser() {
-    const token = state.value.token || tokenCookie.value
-    if (!token) return
-
-    try {
-      const response = await fetch(`${config.public.apiBase}/auth/me`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
-
-      if (response.ok) {
-        const data = await response.json()
-        state.value.user = data.data
-        state.value.token = token
-        state.value.isLoggedIn = true
-      } else {
-        // Token invalid - clear everything
-        logout()
-      }
-    } catch (error) {
-      console.error('Failed to fetch user:', error)
-      logout()
-    }
-  }
-
   function logout() {
-    state.value.user = null
-    state.value.token = null
-    state.value.isLoggedIn = false
-    state.value.initialized = true // Keep initialized to show logged out state
+    authState.user = null
+    authState.token = null
+    authState.isLoggedIn = false
+    authState.initialized = true
     tokenCookie.value = null
   }
 
   function hasRole(role: string | string[]): boolean {
-    if (!state.value.user) return false
+    if (!authState.user) return false
     const roles = Array.isArray(role) ? role : [role]
     const roleHierarchy = { guest: 0, user: 1, reporter: 2, admin: 3 }
-    const userLevel = roleHierarchy[state.value.user.role] || 0
+    const userLevel = roleHierarchy[authState.user.role] || 0
     return roles.some(r => userLevel >= (roleHierarchy[r] || 0))
   }
 
   return {
-    user: computed(() => state.value.user),
-    token: computed(() => state.value.token),
-    isLoggedIn: computed(() => state.value.isLoggedIn),
-    initialized: computed(() => state.value.initialized),
+    user: computed(() => authState.user),
+    token: computed(() => authState.token),
+    isLoggedIn: computed(() => authState.isLoggedIn),
+    initialized: computed(() => authState.initialized),
+    loading: computed(() => authState.loading),
     login,
     register,
     logout,
-    fetchUser,
     initSession,
     hasRole,
   }
