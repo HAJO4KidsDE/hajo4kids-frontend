@@ -25,6 +25,10 @@ const form = ref({
   bilder: [] as number[]
 })
 
+// Image management
+const uploadedImages = ref<any[]>([])
+const uploadingImage = ref(false)
+
 const loading = ref(false)
 const saving = ref(false)
 const error = ref('')
@@ -39,7 +43,7 @@ if (!isNew.value) {
     const response = await fetch(`${config.public.apiBase}/ziele/${route.params.id}`)
     if (response.ok) {
       const result = await response.json()
-      const ziel = result.data || result // Handle both {data: {...}} and {...}
+      const ziel = result.data || result
       form.value = {
         name: ziel.name || '',
         slugname: ziel.slugname || '',
@@ -53,10 +57,11 @@ if (!isNew.value) {
         vorteile: ziel.vorteile || '',
         latitude: ziel.latitude,
         longitude: ziel.longitude,
-        status: ziel.status || 'draft',
+        status: ziel.status || 'DESIGN',
         kategorien: ziel.kategorien?.map((k: any) => k.id) || [],
         bilder: ziel.bilder?.map((b: any) => b.id) || []
       }
+      uploadedImages.value = ziel.bilder || []
     }
   } catch (e) {
     console.error('Failed to load ziel', e)
@@ -64,6 +69,58 @@ if (!isNew.value) {
   } finally {
     loading.value = false
   }
+}
+
+// Handle image upload
+async function handleImageUpload(event: Event) {
+  const input = event.target as HTMLInputElement
+  if (!input.files?.length) return
+
+  uploadingImage.value = true
+  error.value = ''
+
+  try {
+    for (const file of Array.from(input.files)) {
+      const formData = new FormData()
+      formData.append('file', file)
+
+      const response = await fetch(`${config.public.apiBase}/bilder`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${auth.token.value}`
+        },
+        body: formData
+      })
+
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || 'Upload fehlgeschlagen')
+      }
+
+      const result = await response.json()
+      const image = result.data || result
+      
+      uploadedImages.value.push(image)
+      form.value.bilder.push(image.id)
+    }
+  } catch (e: any) {
+    error.value = e.message
+  } finally {
+    uploadingImage.value = false
+    input.value = ''
+  }
+}
+
+// Remove image
+function removeImage(imageId: number) {
+  uploadedImages.value = uploadedImages.value.filter(img => img.id !== imageId)
+  form.value.bilder = form.value.bilder.filter(id => id !== imageId)
+}
+
+// Get image URL
+function getImageUrl(image: any) {
+  const baseUrl = config.public.apiBase.replace('/api/v1', '')
+  return `${baseUrl}/media/bilder/${image.id}`
 }
 
 async function save() {
@@ -173,6 +230,58 @@ async function deleteZiel() {
               <Input id="telefon" v-model="form.telefonnummer" />
             </div>
           </div>
+        </CardContent>
+      </Card>
+
+      <!-- Bilder -->
+      <Card>
+        <CardHeader>
+          <CardTitle>Bilder</CardTitle>
+        </CardHeader>
+        <CardContent class="space-y-4">
+          <!-- Upload -->
+          <div class="flex items-center gap-4">
+            <label class="flex items-center gap-2 px-4 py-2 border rounded-md cursor-pointer hover:bg-accent">
+              <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+              <span>Bild hochladen</span>
+              <input 
+                type="file" 
+                accept="image/*" 
+                multiple 
+                class="hidden" 
+                @change="handleImageUpload"
+                :disabled="uploadingImage"
+              />
+            </label>
+            <span v-if="uploadingImage" class="text-muted-foreground">Wird hochgeladen...</span>
+          </div>
+
+          <!-- Image Grid -->
+          <div v-if="uploadedImages.length" class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div 
+              v-for="image in uploadedImages" 
+              :key="image.id" 
+              class="relative group aspect-square bg-muted rounded-lg overflow-hidden"
+            >
+              <img 
+                :src="getImageUrl(image)" 
+                :alt="image.original_name || 'Bild'"
+                class="w-full h-full object-cover"
+              />
+              <button 
+                type="button"
+                @click="removeImage(image.id)"
+                class="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+              >
+                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+          </div>
+          <p v-else class="text-muted-foreground text-sm">Keine Bilder hochgeladen</p>
         </CardContent>
       </Card>
 
