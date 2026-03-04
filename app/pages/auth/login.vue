@@ -62,6 +62,11 @@ async function handleLogin() {
           </Button>
         </form>
         <div class="mt-4 text-center text-sm text-muted-foreground">
+          <NuxtLink to="/auth/forgot-password" class="text-primary hover:underline">
+            Passwort vergessen?
+          </NuxtLink>
+        </div>
+        <div class="mt-2 text-center text-sm text-muted-foreground">
           Noch kein Account?
           <NuxtLink to="/auth/register" class="text-primary hover:underline">
             Registrieren
