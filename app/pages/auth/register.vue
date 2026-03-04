@@ -1,4 +1,5 @@
 <script setup lang="ts">
+const config = useRuntimeConfig()
 const router = useRouter()
 
 const username = ref('')
@@ -16,15 +17,15 @@ async function handleRegister() {
     return
   }
   
-  if (password.value.length < 6) {
-    error.value = 'Passwort muss mindestens 6 Zeichen lang sein'
+  if (password.value.length < 8) {
+    error.value = 'Passwort muss mindestens 8 Zeichen lang sein'
     return
   }
   
   loading.value = true
   
   try {
-    const response = await fetch('/api/v1/auth/register', {
+    const response = await fetch(`${config.public.apiBase}/auth/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

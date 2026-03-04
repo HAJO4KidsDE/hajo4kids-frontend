@@ -15,7 +15,9 @@ async function handleLogin() {
     await auth.login(email.value, password.value)
     router.push('/dashboard')
   } catch (e: any) {
-    error.value = e.message || 'Anmeldung fehlgeschlagen'
+    // Extract error message from API response
+    const message = e.message || 'Anmeldung fehlgeschlagen'
+    error.value = message.replace(/^Error:\s*/, '')
   } finally {
     loading.value = false
   }
