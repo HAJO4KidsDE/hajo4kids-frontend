@@ -80,7 +80,7 @@ watch([searchQuery, selectedStadt, selectedKategorie], () => {
           />
           <select
             v-model="selectedKategorie"
-            class="flex h-10 w-full md:w-48 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            class="flex h-10 w-full md:w-48 rounded-lg border border-input bg-background/70 px-3 py-2 text-sm shadow-sm backdrop-blur-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:ring-offset-2"
           >
             <option value="">Alle Kategorien</option>
             <option v-for="kat in kategorien" :key="kat.id" :value="kat.name">

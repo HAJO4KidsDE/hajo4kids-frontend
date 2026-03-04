@@ -55,7 +55,11 @@ async function submitForm() {
           </svg>
           <h2 class="text-lg font-semibold text-green-800">Nachricht gesendet!</h2>
           <p class="text-green-600">Vielen Dank für deine Nachricht. Wir melden uns schnellstmöglich.</p>
-          <Button class="mt-4" variant="outline" @click="success = false">
+          <Button
+            class="mt-4 border-primary text-primary hover:bg-primary/10"
+            variant="outline"
+            @click="success = false"
+          >
             Weitere Nachricht senden
           </Button>
         </CardContent>
@@ -103,7 +107,7 @@ async function submitForm() {
                 rows="5"
                 placeholder="Deine Nachricht an uns..."
                 required
-                class="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                class="flex min-h-[80px] w-full rounded-lg border border-input bg-background/70 px-3 py-2 text-sm shadow-sm backdrop-blur-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
               />
             </div>
 

@@ -111,7 +111,11 @@ const { data: favorites, pending: favoritesPending, execute: loadFavorites } = a
             <Label>Rolle</Label>
             <Input :model-value="auth.user.value?.role" disabled />
           </div>
-          <Button variant="outline" @click="auth.logout">
+          <Button
+            variant="outline"
+            class="border-primary text-primary hover:bg-primary/10"
+            @click="auth.logout"
+          >
             Abmelden
           </Button>
         </CardContent>
