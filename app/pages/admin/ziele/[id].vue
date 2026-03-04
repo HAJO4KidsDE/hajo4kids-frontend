@@ -20,7 +20,7 @@ const form = ref({
   vorteile: '',
   latitude: null as number | null,
   longitude: null as number | null,
-  status: 'draft',
+  status: 'DESIGN',
   kategorien: [] as number[],
   bilder: [] as number[]
 })
@@ -275,11 +275,11 @@ async function deleteZiel() {
         <CardContent>
           <div class="flex gap-4">
             <label class="flex items-center gap-2 cursor-pointer">
-              <input type="radio" v-model="form.status" value="draft" />
+              <input type="radio" v-model="form.status" value="DESIGN" />
               <span>Entwurf</span>
             </label>
             <label class="flex items-center gap-2 cursor-pointer">
-              <input type="radio" v-model="form.status" value="published" />
+              <input type="radio" v-model="form.status" value="PUBLISHED" />
               <span>Veröffentlicht</span>
             </label>
           </div>
