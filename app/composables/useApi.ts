@@ -44,7 +44,15 @@ export function useApi<T = any>(url: string, options: FetchOptions<T> = {}): Fet
       }
 
       const result = await response.json()
-      data.value = result.data !== undefined ? result.data : result
+      // If response has success, data, and meta, return the full object for pagination support
+      // Otherwise extract just the data property if it exists
+      if (result.success !== undefined && result.meta !== undefined) {
+        data.value = result
+      } else if (result.data !== undefined) {
+        data.value = result.data
+      } else {
+        data.value = result
+      }
     } catch (e) {
       error.value = e as Error
     } finally {

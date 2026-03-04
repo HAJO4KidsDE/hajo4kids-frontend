@@ -18,8 +18,16 @@ interface Kategorie {
   beschreibung: string
 }
 
-const { data: featuredZiele, pending: zielePending } = await useApiGet<Ziel[]>('/ziele?limit=6')
+const { data: featuredZieleRaw, pending: zielePending } = await useApiGet<{ data: Ziel[] } | Ziel[]>('/ziele?limit=6')
 const { data: kategorien, pending: kategorienPending } = await useApiGet<Kategorie[]>('/kategorien')
+
+// Handle both paginated response (with meta) and direct array response
+const featuredZiele = computed(() => {
+  if (Array.isArray(featuredZieleRaw.value)) {
+    return featuredZieleRaw.value
+  }
+  return (featuredZieleRaw.value as { data: Ziel[] })?.data || []
+})
 </script>
 
 <template>

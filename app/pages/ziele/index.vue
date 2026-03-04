@@ -44,8 +44,19 @@ const { data: result, pending, execute } = await useApiGet<{ data: Ziel[]; meta:
   `/ziele?limit=12${query.value ? '&' + query.value : ''}`
 )
 
-const ziele = computed(() => result.value?.data || [])
-const meta = computed(() => result.value?.meta)
+// Handle both paginated response (with meta) and direct array response
+const ziele = computed(() => {
+  if (Array.isArray(result.value)) {
+    return result.value
+  }
+  return result.value?.data || []
+})
+const meta = computed(() => {
+  if (Array.isArray(result.value)) {
+    return undefined
+  }
+  return result.value?.meta
+})
 
 watch([searchQuery, selectedStadt, selectedKategorie], () => {
   execute()
