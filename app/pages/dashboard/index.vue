@@ -23,6 +23,7 @@ interface Ziel {
 
 interface Favorit {
   id: number
+  ziel_id: number
   ziel: Ziel
 }
 
@@ -31,7 +32,7 @@ const { data: favorites, pending: favoritesPending } = await useApiGet<Favorit[]
 // Extract zieles from favorites
 const favoriteZiele = computed(() => {
   if (!favorites.value) return []
-  return favorites.value.map(f => f.ziel).filter(z => z)
+  return favorites.value.map(f => f.ziel).filter(Boolean)
 })
 </script>
 

@@ -372,15 +372,42 @@ function isOpenToday(text: string): boolean {
           </CardContent>
         </Card>
 
-        <!-- Map placeholder -->
+        <!-- Map -->
         <Card v-if="ziel.latitude && ziel.longitude">
           <CardHeader>
-            <CardTitle>Karte</CardTitle>
+            <CardTitle>Standort</CardTitle>
           </CardHeader>
           <CardContent>
-            <div class="aspect-square bg-muted rounded-lg flex items-center justify-center text-muted-foreground">
-              Karte wird geladen...
+            <div class="aspect-square rounded-lg overflow-hidden bg-muted">
+              <iframe
+                :src="`https://www.google.com/maps/embed?pb=!1m14!1m12!1m3!1d2000!2d${ziel.longitude}!3d${ziel.latitude}!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!5e0!3m2!1sde!2sde!4v1!5m2!1sde!2sde`"
+                width="100%"
+                height="100%"
+                style="border:0"
+                allowfullscreen
+                loading="lazy"
+                referrerpolicy="no-referrer-when-downgrade"
+                class="w-full h-full min-h-[300px]"
+              />
             </div>
+            <div class="mt-4 flex items-center gap-2 text-sm text-muted-foreground">
+              <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              <span>{{ ziel.adresse || ziel.stadt }}</span>
+            </div>
+            <a 
+              :href="`https://www.google.com/maps/search/?api=1&query=${ziel.latitude},${ziel.longitude}`"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="mt-2 inline-flex items-center gap-2 text-sm text-primary hover:underline"
+            >
+              <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+              </svg>
+              In Google Maps öffnen
+            </a>
           </CardContent>
         </Card>
       </div>
