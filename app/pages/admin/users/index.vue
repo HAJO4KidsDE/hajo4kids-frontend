@@ -8,7 +8,7 @@ onMounted(() => {
   if (!auth.hasRole('admin')) {
     router.push('/')
   }
-}
+})
 
 const { data: result, pending, execute } = await useApiGet<{ data: any[] } | any[]>('/admin/users')
 
