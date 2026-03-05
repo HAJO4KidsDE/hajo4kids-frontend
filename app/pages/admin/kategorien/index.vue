@@ -14,10 +14,19 @@ const { data: kategorien, pending, execute } = await useApiGet<any[]>('/kategori
 
 // New category form
 const showNewForm = ref(false)
-const newCategory = ref({ name: '', beschreibung: '', bild: '' })
+const newCategory = ref({ name: '', beschreibung: '', bild_id: null as number | null })
 const editingCategory = ref<any>(null)
 const saving = ref(false)
 const uploadingImage = ref(false)
+
+// Get image URL for display (from bild_data relation or bild fallback)
+function getCategoryImageUrl(cat: any) {
+  if (cat.bild_data) {
+    return `${config.public.apiBase.replace('/api/v1', '')}/media/bilder/${cat.bild_data.id}`
+  }
+  if (cat.bild) return cat.bild
+  return null
+}
 
 // Handle image upload
 async function handleImageUpload(event: Event, target: any) {
@@ -41,7 +50,7 @@ async function handleImageUpload(event: Event, target: any) {
     
     const result = await response.json()
     const image = result.data || result
-    target.bild = `${config.public.apiBase.replace('/api/v1', '')}/media/bilder/${image.id}`
+    target.bild_id = image.id
   } catch (e) {
     console.error(e)
   } finally {
@@ -50,16 +59,9 @@ async function handleImageUpload(event: Event, target: any) {
   }
 }
 
-// Get image URL for display
-function getImageUrl(bild: string) {
-  if (!bild) return null
-  if (bild.startsWith('http')) return bild
-  return bild
-}
-
 // Remove image
 function removeImage(target: any) {
-  target.bild = ''
+  target.bild_id = null
 }
 
 async function createCategory() {
@@ -76,7 +78,7 @@ async function createCategory() {
     })
     if (!response.ok) throw new Error('Fehler beim Erstellen')
     showNewForm.value = false
-    newCategory.value = { name: '', beschreibung: '', bild: '' }
+    newCategory.value = { name: '', beschreibung: '', bild_id: null }
     execute()
   } catch (e) {
     console.error(e)
@@ -98,7 +100,7 @@ async function updateCategory() {
       body: JSON.stringify({
         name: editingCategory.value.name,
         beschreibung: editingCategory.value.beschreibung,
-        bild: editingCategory.value.bild
+        bild_id: editingCategory.value.bild_id
       })
     })
     if (!response.ok) throw new Error('Fehler beim Speichern')
@@ -166,8 +168,8 @@ async function deleteCategory(id: number) {
         <div>
           <Label>Bild (Fallback für Ziele ohne Bilder)</Label>
           <div class="flex items-center gap-4 mt-2">
-            <div v-if="newCategory.bild" class="relative group w-24 h-24 bg-muted rounded-lg overflow-hidden">
-              <img :src="newCategory.bild" alt="Kategorie-Bild" class="w-full h-full object-cover" />
+            <div v-if="newCategory.bild_id" class="relative group w-24 h-24 bg-muted rounded-lg overflow-hidden">
+              <img :src="`${config.public.apiBase.replace('/api/v1', '')}/media/bilder/${newCategory.bild_id}`" alt="Kategorie-Bild" class="w-full h-full object-cover" />
               <button 
                 type="button"
                 @click="removeImage(newCategory)"
@@ -222,8 +224,8 @@ async function deleteCategory(id: number) {
         <div>
           <Label>Bild (Fallback für Ziele ohne Bilder)</Label>
           <div class="flex items-center gap-4 mt-2">
-            <div v-if="editingCategory.bild" class="relative group w-24 h-24 bg-muted rounded-lg overflow-hidden">
-              <img :src="editingCategory.bild" alt="Kategorie-Bild" class="w-full h-full object-cover" />
+            <div v-if="editingCategory.bild_id" class="relative group w-24 h-24 bg-muted rounded-lg overflow-hidden">
+              <img :src="`${config.public.apiBase.replace('/api/v1', '')}/media/bilder/${editingCategory.bild_id}`" alt="Kategorie-Bild" class="w-full h-full object-cover" />
               <button 
                 type="button"
                 @click="removeImage(editingCategory)"
@@ -268,8 +270,8 @@ async function deleteCategory(id: number) {
     <div v-else class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
       <Card v-for="kat in kategorien" :key="kat.id" class="p-4">
         <div class="flex gap-4">
-          <div v-if="kat.bild" class="w-16 h-16 bg-muted rounded-lg overflow-hidden flex-shrink-0">
-            <img :src="kat.bild" :alt="kat.name" class="w-full h-full object-cover" />
+          <div v-if="getCategoryImageUrl(kat)" class="w-16 h-16 bg-muted rounded-lg overflow-hidden flex-shrink-0">
+            <img :src="getCategoryImageUrl(kat)" :alt="kat.name" class="w-full h-full object-cover" />
           </div>
           <div class="flex-1 min-w-0">
             <div class="flex justify-between items-start">

@@ -19,6 +19,8 @@ interface Kategorie {
   name: string
   beschreibung: string
   bild: string
+  bild_id: number | null
+  bild_data: { id: number; filename: string } | null
 }
 
 const searchQuery = ref('')
@@ -218,8 +220,10 @@ function doSearch() {
                 class="w-full h-full object-cover"
               />
               <img
-                v-else-if="ziel.kategorien?.length > 0 && ziel.kategorien[0].bild"
-                :src="ziel.kategorien[0].bild"
+                v-else-if="ziel.kategorien?.length > 0 && (ziel.kategorien[0].bild_data || ziel.kategorien[0].bild)"
+                :src="ziel.kategorien[0].bild_data
+                  ? `${config.public.apiBase.replace('/api/v1', '')}/media/bilder/${ziel.kategorien[0].bild_data.id}`
+                  : ziel.kategorien[0].bild"
                 :alt="ziel.kategorien[0].name"
                 class="w-full h-full object-cover"
               />

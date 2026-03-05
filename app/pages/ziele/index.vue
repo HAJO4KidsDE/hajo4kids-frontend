@@ -162,8 +162,10 @@ onMounted(() => {
               class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
             />
             <img
-              v-else-if="ziel.kategorien?.length > 0 && ziel.kategorien[0].bild"
-              :src="ziel.kategorien[0].bild"
+              v-else-if="ziel.kategorien?.length > 0 && (ziel.kategorien[0].bild_data || ziel.kategorien[0].bild)"
+              :src="ziel.kategorien[0].bild_data
+                ? `${config.public.apiBase.replace('/api/v1', '')}/media/bilder/${ziel.kategorien[0].bild_data.id}`
+                : ziel.kategorien[0].bild"
               :alt="ziel.kategorien[0].name"
               class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
             />
