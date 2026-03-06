@@ -159,7 +159,7 @@ function formatPrice(price: number): string {
 
     <!-- Edit Modal -->
     <div v-if="editingItem" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <Card class="w-full max-w-lg max-h-[90vh] overflow-y-auto">
+      <Card class="w-full max-w-lg max-h-[90vh] overflow-y-auto bg-background">
         <CardHeader>
           <CardTitle>{{ editingItem.id ? 'Artikel bearbeiten' : 'Neuer Artikel' }}</CardTitle>
         </CardHeader>
