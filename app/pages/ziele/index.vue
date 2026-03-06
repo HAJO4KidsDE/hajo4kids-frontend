@@ -3,6 +3,21 @@ const route = useRoute()
 const router = useRouter()
 const config = useRuntimeConfig()
 
+interface Bild {
+  id: number
+  filename: string
+  path?: string
+  thumbnail?: string
+}
+
+interface Kategorie {
+  id: number
+  name: string
+  bild?: string
+  bild_id?: number
+  bild_data?: Bild
+}
+
 interface Ziel {
   id: number
   name: string
@@ -13,8 +28,8 @@ interface Ziel {
   beschreibung: string
   latitude: number
   longitude: number
-  bilder: { id: number; filename: string }[]
-  kategorien: { id: number; name: string; bild: string }[]
+  bilder: Bild[]
+  kategorien: Kategorie[]
   rating: number
   favorits: number
   favorit: boolean
@@ -91,6 +106,36 @@ const meta = computed(() => {
   return result.value?.meta
 })
 
+// Get main image for a Ziel (first image or category fallback)
+function getZielImage(ziel: Ziel): { src: string; alt: string } | null {
+  // First: check for Ziel's own images
+  if (ziel.bilder?.length > 0) {
+    return {
+      src: `${config.public.apiBase.replace('/api/v1', '')}/media/bilder/${ziel.bilder[0].id}`,
+      alt: ziel.name
+    }
+  }
+  
+  // Fallback: check for category images
+  if (ziel.kategorien?.length > 0) {
+    const kat = ziel.kategorien[0]
+    if (kat.bild_data?.id) {
+      return {
+        src: `${config.public.apiBase.replace('/api/v1', '')}/media/bilder/${kat.bild_data.id}`,
+        alt: kat.name
+      }
+    }
+    if (kat.bild) {
+      return {
+        src: kat.bild,
+        alt: kat.name
+      }
+    }
+  }
+  
+  return null
+}
+
 // Initial load on client
 onMounted(() => {
   loadZiele()
@@ -156,17 +201,9 @@ onMounted(() => {
         <Card class="overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300 h-full group">
           <div class="aspect-video bg-muted relative">
             <img
-              v-if="ziel.bilder?.length > 0"
-              :src="`${config.public.apiBase.replace('/api/v1', '')}/media/bilder/${ziel.bilder[0].id}`"
-              :alt="ziel.name"
-              class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-            />
-            <img
-              v-else-if="ziel.kategorien?.length > 0 && (ziel.kategorien[0].bild_data || ziel.kategorien[0].bild)"
-              :src="ziel.kategorien[0].bild_data
-                ? `${config.public.apiBase.replace('/api/v1', '')}/media/bilder/${ziel.kategorien[0].bild_data.id}`
-                : ziel.kategorien[0].bild"
-              :alt="ziel.kategorien[0].name"
+              v-if="getZielImage(ziel)"
+              :src="getZielImage(ziel)!.src"
+              :alt="getZielImage(ziel)!.alt"
               class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
             />
             <div v-else class="w-full h-full flex items-center justify-center text-muted-foreground">
