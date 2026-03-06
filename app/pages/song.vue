@@ -165,19 +165,21 @@ Hajo, Hajo, Hajo - es gibt so viel zu erleben hier auf dieser Welt.</p>
         <CardTitle>Beteiligte</CardTitle>
       </CardHeader>
       <CardContent>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           <div 
             v-for="member in members" 
             :key="member.name"
-            class="flex items-center gap-4 p-4 rounded-lg border"
+            class="flex flex-col items-center text-center p-4 rounded-lg border"
           >
-            <div class="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">
-              {{ member.name.split(' ').map(n => n[0]).join('') }}
+            <div class="w-24 h-24 rounded-full overflow-hidden bg-muted mb-3">
+              <img
+                :src="`${config.public.apiBase.replace('/api/v1', '')}/media/bilder/${member.image}`"
+                :alt="member.name"
+                class="w-full h-full object-cover"
+              />
             </div>
-            <div>
-              <p class="font-medium">{{ member.name }}</p>
-              <p class="text-sm text-muted-foreground">{{ member.task }}</p>
-            </div>
+            <p class="font-medium">{{ member.name }}</p>
+            <p class="text-sm text-muted-foreground">{{ member.task }}</p>
           </div>
         </div>
       </CardContent>
