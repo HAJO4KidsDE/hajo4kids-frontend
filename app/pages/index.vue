@@ -146,7 +146,6 @@ function doSearch() {
           </div>
         </div>
       </div>
-      </div>
     </section>
 
     <!-- Search + Categories Combined -->
