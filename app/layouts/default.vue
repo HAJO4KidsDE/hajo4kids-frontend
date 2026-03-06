@@ -13,6 +13,7 @@ const navigation = [
 ]
 
 const secondaryNav = [
+  { name: 'Über uns', to: '/ueber-uns' },
   { name: 'HAJO Song', to: '/song' },
   { name: 'Preise', to: '/preise' },
   { name: 'Bildnachweise', to: '/bildnachweise' },
@@ -181,6 +182,7 @@ const secondaryNav = [
             © 2026 HAJO4Kids. Alle Rechte vorbehalten.
           </div>
           <div class="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm">
+            <NuxtLink to="/ueber-uns" class="text-muted-foreground hover:text-primary">Über uns</NuxtLink>
             <NuxtLink to="/song" class="text-muted-foreground hover:text-primary">HAJO Song</NuxtLink>
             <NuxtLink to="/preise" class="text-muted-foreground hover:text-primary">Preise</NuxtLink>
             <NuxtLink to="/bildnachweise" class="text-muted-foreground hover:text-primary">Bildnachweise</NuxtLink>
