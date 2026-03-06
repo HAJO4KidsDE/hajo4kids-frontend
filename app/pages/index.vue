@@ -48,17 +48,7 @@ function doSearch() {
 <template>
   <div>
     <!-- Hero Section -->
-    <section class="relative overflow-hidden rounded-2xl border border-border/60 px-6 py-12 shadow-sm sm:px-10 md:py-16">
-      <!-- Background Image -->
-      <div class="absolute inset-0 z-0">
-        <img
-          :src="`${config.public.apiBase.replace('/api/v1', '')}/media/bilder/164`"
-          alt=""
-          class="w-full h-full object-cover"
-        />
-        <div class="absolute inset-0 bg-background/90" />
-        <div class="absolute inset-0 bg-gradient-to-r from-background via-background/95 to-background/80" />
-      </div>
+    <section class="relative overflow-hidden rounded-2xl border border-border/60 bg-gradient-to-br from-primary/14 via-background to-secondary/70 px-6 py-12 shadow-sm sm:px-10 md:py-16">
       <div class="relative z-10 grid gap-10 lg:grid-cols-2 lg:items-center">
         <div>
           <div class="inline-flex items-center gap-2 rounded-full bg-accent/60 px-3 py-1 text-xs font-semibold text-accent-foreground ring-1 ring-border/50">
@@ -100,52 +90,34 @@ function doSearch() {
         </div>
 
         <div class="hidden lg:block">
-          <div class="relative rounded-2xl border border-border/60 bg-card/70 p-6 shadow-sm backdrop-blur-sm">
-            <div class="flex items-center justify-between">
-              <div class="text-sm font-semibold">Beliebte Ideen</div>
-              <div class="text-xs text-muted-foreground">Schnell startklar</div>
-            </div>
-            <div class="mt-4 space-y-3">
-              <div class="flex items-center gap-3 rounded-xl bg-background/60 p-3 ring-1 ring-border/60">
-                <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-accent/60 text-accent-foreground">
-                  <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 21s-7-4.438-7-11a7 7 0 1114 0c0 6.562-7 11-7 11z" />
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10a2 2 0 100-4 2 2 0 000 4z" />
-                  </svg>
-                </div>
-                <div class="min-w-0">
-                  <div class="font-semibold leading-5">Ausflugsziele in deiner Stadt</div>
-                  <div class="text-sm text-muted-foreground">Spielplätze, Parks, Tiere & mehr</div>
-                </div>
-              </div>
-              <div class="flex items-center gap-3 rounded-xl bg-background/60 p-3 ring-1 ring-border/60">
-                <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/15 text-primary">
-                  <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v8m4-4H8" />
-                    <path stroke-linecap="round" join="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                </div>
-                <div class="min-w-0">
-                  <div class="font-semibold leading-5">Neue Orte entdecken</div>
-                  <div class="text-sm text-muted-foreground">Für Wochenenden & Ferien</div>
-                </div>
-              </div>
-              <div class="flex items-center gap-3 rounded-xl bg-background/60 p-3 ring-1 ring-border/60">
-                <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-secondary/60 text-secondary-foreground">
-                  <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4" />
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" />
-                  </svg>
-                </div>
-                <div class="min-w-0">
-                  <div class="font-semibold leading-5">Für Eltern gemacht</div>
-                  <div class="text-sm text-muted-foreground">Übersichtlich & schnell</div>
+          <div class="relative rounded-2xl overflow-hidden border border-border/60 shadow-lg">
+            <img
+              :src="`${config.public.apiBase.replace('/api/v1', '')}/media/bilder/164`"
+              alt="Familienausflug"
+              class="w-full h-80 object-cover"
+            />
+            <div class="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent" />
+            <div class="absolute bottom-4 left-4 right-4">
+              <div class="rounded-xl bg-background/90 p-3 backdrop-blur-sm ring-1 ring-border/60">
+                <div class="flex items-center gap-2">
+                  <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/15 text-primary">
+                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <div class="font-semibold text-sm">Über 200 Ausflugsziele</div>
+                    <div class="text-xs text-muted-foreground">In deiner Region</div>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
       </div>
+      <div class="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-primary/18 blur-3xl" />
+      <div class="pointer-events-none absolute right-16 top-16 h-56 w-56 rounded-full bg-accent/30 blur-3xl" />
+      <div class="absolute right-0 top-0 h-full w-1/2 bg-gradient-to-l from-primary/6 to-transparent" />
     </section>
 
     <!-- Search + Categories Combined -->
