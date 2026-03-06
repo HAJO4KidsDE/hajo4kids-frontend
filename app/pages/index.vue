@@ -56,8 +56,8 @@ function doSearch() {
           alt=""
           class="w-full h-full object-cover"
         />
-        <div class="absolute inset-0 bg-gradient-to-r from-background/95 via-background/80 to-background/60" />
-        <div class="absolute inset-0 bg-gradient-to-br from-primary/20 to-secondary/30 mix-blend-overlay" />
+        <div class="absolute inset-0 bg-background/90" />
+        <div class="absolute inset-0 bg-gradient-to-r from-background via-background/95 to-background/80" />
       </div>
       <div class="relative z-10 grid gap-10 lg:grid-cols-2 lg:items-center">
         <div>
