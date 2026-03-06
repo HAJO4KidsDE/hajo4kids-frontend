@@ -60,6 +60,12 @@ const { data: stats, execute: loadStats } = await useApiGet('/admin/statistics')
           <div class="font-medium text-sm">Blog</div>
         </Card>
       </NuxtLink>
+      <NuxtLink to="/admin/shop">
+        <Card class="p-4 text-center hover:shadow-md transition-shadow cursor-pointer">
+          <div class="text-2xl mb-2">🛒</div>
+          <div class="font-medium text-sm">Shop</div>
+        </Card>
+      </NuxtLink>
       <NuxtLink to="/admin/bilder">
         <Card class="p-4 text-center hover:shadow-md transition-shadow cursor-pointer">
           <div class="text-2xl mb-2">🖼️</div>

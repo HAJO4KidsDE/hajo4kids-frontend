@@ -14,6 +14,15 @@ interface ShopItem {
   kategorie?: { id: number; name: string }
 }
 
+function getShopImageUrl(bild: string): string {
+  if (!bild) return ''
+  // If it's a numeric ID, use the media endpoint
+  if (/^\d+$/.test(bild)) {
+    return `${config.public.apiBase.replace('/api/v1', '')}/media/bilder/${bild}`
+  }
+  return bild
+}
+
 const { data: items, pending } = await useApiGet<ShopItem[]>('/shop/items?verfuegbar=true')
 </script>
 
@@ -41,7 +50,7 @@ const { data: items, pending } = await useApiGet<ShopItem[]>('/shop/items?verfue
         <div class="aspect-square bg-muted relative">
           <img
             v-if="item.bild"
-            :src="item.bild"
+            :src="getShopImageUrl(item.bild)"
             :alt="item.name"
             class="w-full h-full object-cover"
           />
