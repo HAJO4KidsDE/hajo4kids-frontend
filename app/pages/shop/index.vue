@@ -23,7 +23,15 @@ function getShopImageUrl(bild: string): string {
   return bild
 }
 
-const { data: items, pending } = await useApiGet<ShopItem[]>('/shop/items?verfuegbar=true')
+const { data: itemsRaw, pending } = await useApiGet<{data: ShopItem[], meta?: {total: number}} | ShopItem[]>('/shop/items?verfuegbar=true')
+
+// Handle both paginated and array responses
+const items = computed(() => {
+  if (!itemsRaw.value) return []
+  if (Array.isArray(itemsRaw.value)) return itemsRaw.value
+  if ('data' in itemsRaw.value) return itemsRaw.value.data
+  return []
+})
 </script>
 
 <template>
