@@ -48,7 +48,17 @@ function doSearch() {
 <template>
   <div>
     <!-- Hero Section -->
-    <section class="relative overflow-hidden rounded-2xl border border-border/60 bg-gradient-to-br from-primary/14 via-background to-secondary/70 px-6 py-12 shadow-sm sm:px-10 md:py-16">
+    <section class="relative overflow-hidden rounded-2xl border border-border/60 px-6 py-12 shadow-sm sm:px-10 md:py-16">
+      <!-- Background Image -->
+      <div class="absolute inset-0 z-0">
+        <img
+          :src="`${config.public.apiBase.replace('/api/v1', '')}/media/bilder/164`"
+          alt=""
+          class="w-full h-full object-cover"
+        />
+        <div class="absolute inset-0 bg-gradient-to-r from-background/95 via-background/80 to-background/60" />
+        <div class="absolute inset-0 bg-gradient-to-br from-primary/20 to-secondary/30 mix-blend-overlay" />
+      </div>
       <div class="relative z-10 grid gap-10 lg:grid-cols-2 lg:items-center">
         <div>
           <div class="inline-flex items-center gap-2 rounded-full bg-accent/60 px-3 py-1 text-xs font-semibold text-accent-foreground ring-1 ring-border/50">
@@ -136,9 +146,7 @@ function doSearch() {
           </div>
         </div>
       </div>
-      <div class="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-primary/18 blur-3xl" />
-      <div class="pointer-events-none absolute right-16 top-16 h-56 w-56 rounded-full bg-accent/30 blur-3xl" />
-      <div class="absolute right-0 top-0 h-full w-1/2 bg-gradient-to-l from-primary/6 to-transparent" />
+      </div>
     </section>
 
     <!-- Search + Categories Combined -->
