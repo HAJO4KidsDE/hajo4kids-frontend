@@ -26,10 +26,16 @@ function getShopImageUrl(bild: string): string {
 const { data: itemsRaw, pending } = await useApiGet<{data: ShopItem[], meta?: {total: number}} | ShopItem[]>('/shop/items?verfuegbar=true')
 
 // Handle both paginated and array responses
-const items = computed(() => {
-  if (!itemsRaw.value) return []
-  if (Array.isArray(itemsRaw.value)) return itemsRaw.value
-  if ('data' in itemsRaw.value) return itemsRaw.value.data
+const items = computed<ShopItem[]>(() => {
+  const raw = itemsRaw.value
+  if (!raw) return []
+  // If it's already an array, return it directly
+  if (Array.isArray(raw)) return raw
+  // If it's a paginated response with data property
+  const paginated = raw as {data: ShopItem[], meta?: {total: number}}
+  if (paginated.data && Array.isArray(paginated.data)) {
+    return paginated.data
+  }
   return []
 })
 </script>
@@ -45,7 +51,7 @@ const items = computed(() => {
       <div v-for="i in 8" :key="i" class="h-72 bg-muted rounded-lg animate-pulse" />
     </div>
 
-    <div v-else-if="!items?.length" class="text-center py-12">
+    <div v-else-if="items.length === 0" class="text-center py-12">
       <p class="text-muted-foreground">Keine Produkte verfügbar</p>
     </div>
 

@@ -16,7 +16,19 @@ interface ShopItem {
   kategorie_id?: number
 }
 
-const { data: items, pending, refresh } = await useApiGet<ShopItem[]>('/shop/items')
+const { data: itemsRaw, pending, refresh } = await useApiGet<{data: ShopItem[], meta?: {total: number}} | ShopItem[]>('/shop/items')
+
+// Handle both paginated and array responses
+const items = computed<ShopItem[]>(() => {
+  const raw = itemsRaw.value
+  if (!raw) return []
+  if (Array.isArray(raw)) return raw
+  const paginated = raw as {data: ShopItem[], meta?: {total: number}}
+  if (paginated.data && Array.isArray(paginated.data)) {
+    return paginated.data
+  }
+  return []
+})
 
 const editingItem = ref<ShopItem | null>(null)
 const isSaving = ref(false)
@@ -101,7 +113,7 @@ function formatPrice(price: number): string {
       <div v-for="i in 4" :key="i" class="h-20 bg-muted rounded-lg animate-pulse" />
     </div>
 
-    <div v-else-if="!items?.length" class="text-center py-12">
+    <div v-else-if="items.length === 0" class="text-center py-12">
       <p class="text-muted-foreground">Keine Artikel vorhanden</p>
     </div>
 
