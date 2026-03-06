@@ -9,12 +9,24 @@ interface Bild {
   beschreibung: string
 }
 
+interface BilderResponse {
+  data: Bild[]
+  meta?: { total: number; page: number; per_page: number; last_page: number }
+}
+
 const searchQuery = ref('')
-const { data: bilder, pending } = await useApiGet<Bild[]>('/bilder?with_author=true')
+const { data: result, pending } = await useApiGet<BilderResponse>('/bilder?with_author=true&per_page=200')
+
+// Extract bilder array from response
+const bilder = computed(() => {
+  if (!result.value) return []
+  // Handle both paginated response ({ data: [...], meta }) and direct array
+  if (Array.isArray(result.value)) return result.value
+  return result.value.data || []
+})
 
 // Filter and group by author
 const filteredBilder = computed(() => {
-  if (!bilder.value) return []
   const search = searchQuery.value.toLowerCase()
   return bilder.value.filter(b => 
     b.autor && (
@@ -33,7 +45,7 @@ const authors = computed(() => {
   return Array.from(authorSet).sort()
 })
 
-const BilderByAuthor = computed(() => {
+const bilderByAuthor = computed(() => {
   const grouped: Record<string, Bild[]> = {}
   authors.value.forEach(author => {
     grouped[author] = filteredBilder.value.filter(b => b.autor === author)
@@ -79,12 +91,12 @@ const BilderByAuthor = computed(() => {
       <Card v-for="author in authors" :key="author">
         <CardHeader>
           <CardTitle class="text-lg">{{ author }}</CardTitle>
-          <CardDescription>{{ BilderByAuthor[author].length }} Bild{{ BilderByAuthor[author].length !== 1 ? 'er' : '' }}</CardDescription>
+          <CardDescription>{{ bilderByAuthor[author].length }} Bild{{ bilderByAuthor[author].length !== 1 ? 'er' : '' }}</CardDescription>
         </CardHeader>
         <CardContent>
           <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-            <div 
-              v-for="bild in BilderByAuthor[author]" 
+            <div
+              v-for="bild in bilderByAuthor[author]"
               :key="bild.id"
               class="aspect-square rounded-lg overflow-hidden bg-muted group relative"
             >
