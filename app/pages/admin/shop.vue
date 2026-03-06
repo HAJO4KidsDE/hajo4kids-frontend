@@ -158,62 +158,64 @@ function formatPrice(price: number): string {
     </div>
 
     <!-- Edit Modal -->
-    <div v-if="editingItem" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <Card class="w-full max-w-lg max-h-[90vh] overflow-y-auto bg-white dark:bg-gray-900 shadow-xl">
-        <CardHeader>
-          <CardTitle>{{ editingItem.id ? 'Artikel bearbeiten' : 'Neuer Artikel' }}</CardTitle>
-        </CardHeader>
-        <CardContent class="space-y-4">
-          <div>
-            <Label>Name</Label>
-            <Input v-model="editingItem.name" />
+    <Teleport to="body">
+      <div v-if="editingItem" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <div class="w-full max-w-lg max-h-[90vh] overflow-y-auto bg-white dark:bg-gray-950 rounded-lg shadow-2xl border">
+          <div class="p-6 border-b">
+            <h2 class="text-lg font-semibold">{{ editingItem.id ? 'Artikel bearbeiten' : 'Neuer Artikel' }}</h2>
           </div>
-          <div>
-            <Label>Beschreibung</Label>
-            <Textarea v-model="editingItem.beschreibung" rows="4" />
-          </div>
-          <div class="grid grid-cols-2 gap-4">
+          <div class="p-6 space-y-4">
             <div>
-              <Label>Preis (€)</Label>
-              <Input v-model.number="editingItem.preis" type="number" step="0.01" />
+              <Label>Name</Label>
+              <Input v-model="editingItem.name" />
             </div>
             <div>
-              <Label>Alter Preis (€)</Label>
-              <Input v-model.number="editingItem.preis_alt" type="number" step="0.01" />
+              <Label>Beschreibung</Label>
+              <Textarea v-model="editingItem.beschreibung" rows="4" />
             </div>
-          </div>
-          <div>
-            <Label>Bild-ID oder URL</Label>
-            <Input v-model="editingItem.bild" placeholder="z.B. 240 oder https://..." />
-          </div>
-          <div class="grid grid-cols-2 gap-4">
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <Label>Preis (€)</Label>
+                <Input v-model.number="editingItem.preis" type="number" step="0.01" />
+              </div>
+              <div>
+                <Label>Alter Preis (€)</Label>
+                <Input v-model.number="editingItem.preis_alt" type="number" step="0.01" />
+              </div>
+            </div>
             <div>
-              <Label>Lagerbestand</Label>
-              <Input v-model.number="editingItem.lagerbestand" type="number" />
+              <Label>Bild-ID oder URL</Label>
+              <Input v-model="editingItem.bild" placeholder="z.B. 240 oder https://..." />
             </div>
-            <div>
-              <Label>Status</Label>
-              <select v-model="editingItem.status" class="w-full px-3 py-2 rounded-md border border-input bg-background">
-                <option value="DESIGN">Entwurf</option>
-                <option value="published">Veröffentlicht</option>
-                <option value="ARCHIVED">Archiviert</option>
-              </select>
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <Label>Lagerbestand</Label>
+                <Input v-model.number="editingItem.lagerbestand" type="number" />
+              </div>
+              <div>
+                <Label>Status</Label>
+                <select v-model="editingItem.status" class="w-full px-3 py-2 rounded-md border border-input bg-background">
+                  <option value="DESIGN">Entwurf</option>
+                  <option value="published">Veröffentlicht</option>
+                  <option value="ARCHIVED">Archiviert</option>
+                </select>
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              <input type="checkbox" v-model="editingItem.verfuegbar" id="verfuegbar" class="rounded" />
+              <Label for="verfuegbar">Verfügbar</Label>
+            </div>
+            <div class="flex gap-2 pt-4">
+              <Button @click="saveItem" :disabled="isSaving" class="flex-1">
+                {{ isSaving ? 'Speichert...' : 'Speichern' }}
+              </Button>
+              <Button variant="outline" @click="editingItem = null" class="flex-1">
+                Abbrechen
+              </Button>
             </div>
           </div>
-          <div class="flex items-center gap-2">
-            <input type="checkbox" v-model="editingItem.verfuegbar" id="verfuegbar" />
-            <Label for="verfuegbar">Verfügbar</Label>
-          </div>
-          <div class="flex gap-2 pt-4">
-            <Button @click="saveItem" :disabled="isSaving" class="flex-1">
-              {{ isSaving ? 'Speichert...' : 'Speichern' }}
-            </Button>
-            <Button variant="outline" @click="editingItem = null" class="flex-1">
-              Abbrechen
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+        </div>
+      </div>
+    </Teleport>
   </div>
 </template>
