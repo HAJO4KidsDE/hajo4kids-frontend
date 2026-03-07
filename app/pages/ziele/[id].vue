@@ -263,9 +263,9 @@ function isOpenToday(text: string): boolean {
 
     <!-- Gallery & Map Row -->
     <div class="mb-8 animate-slide-up" style="animation-delay: 100ms">
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:grid-rows-1">
-        <!-- Images -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 min-h-[400px]">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:grid-rows-1">
+        <!-- Images (2/3 width) -->
+        <div class="lg:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-4 min-h-[400px]">
           <div class="md:col-span-2 rounded-lg overflow-hidden bg-muted group">
             <img
               v-if="getZielImage(ziel)"
