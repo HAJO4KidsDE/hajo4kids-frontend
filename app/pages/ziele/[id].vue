@@ -411,22 +411,19 @@ function isOpenToday(text: string): boolean {
           </CardContent>
         </Card>
 
-        <!-- Map -->
+        <!-- Map with Marker -->
         <Card v-if="ziel.latitude && ziel.longitude">
           <CardHeader>
             <CardTitle>Standort</CardTitle>
           </CardHeader>
           <CardContent>
             <div class="aspect-square rounded-lg overflow-hidden bg-muted">
-              <iframe
-                :src="`https://www.google.com/maps/embed?pb=!1m14!1m12!1m3!1d2000!2d${ziel.longitude}!3d${ziel.latitude}!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!5e0!3m2!1sde!2sde!4v1!5m2!1sde!2sde`"
-                width="100%"
-                height="100%"
-                style="border:0"
-                allowfullscreen
-                loading="lazy"
-                referrerpolicy="no-referrer-when-downgrade"
-                class="w-full h-full min-h-[300px]"
+              <MapMarker
+                :latitude="ziel.latitude"
+                :longitude="ziel.longitude"
+                :title="ziel.name"
+                :address="ziel.adresse"
+                :zoom="15"
               />
             </div>
             <div class="mt-4 flex items-center gap-2 text-sm text-muted-foreground">
