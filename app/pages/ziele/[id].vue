@@ -261,36 +261,85 @@ function isOpenToday(text: string): boolean {
       </div>
     </div>
 
-    <!-- Gallery -->
+    <!-- Gallery & Map Row -->
     <div class="mb-8 animate-slide-up" style="animation-delay: 100ms">
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div class="md:col-span-2 aspect-video rounded-lg overflow-hidden bg-muted group">
-          <img
-            v-if="getZielImage(ziel)"
-            :src="getZielImage(ziel)!.src"
-            :alt="getZielImage(ziel)!.alt"
-            class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-          />
-          <div v-else class="w-full h-full flex items-center justify-center text-muted-foreground">
-            <svg class="h-16 w-16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-            </svg>
-          </div>
-        </div>
-        <div v-if="ziel.bilder?.length > 1" class="grid grid-cols-2 gap-4">
-          <div
-            v-for="(bild, index) in ziel.bilder.slice(1, 5)"
-            :key="bild.id"
-            class="aspect-square rounded-lg overflow-hidden bg-muted group"
-            :style="{ animationDelay: `${150 + index * 50}ms` }"
-          >
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <!-- Images -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="md:col-span-2 aspect-video rounded-lg overflow-hidden bg-muted group">
             <img
-              :src="`${config.public.apiBase.replace('/api/v1', '')}/media/bilder/${bild.id}`"
-              :alt="ziel.name"
-              class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+              v-if="getZielImage(ziel)"
+              :src="getZielImage(ziel)!.src"
+              :alt="getZielImage(ziel)!.alt"
+              class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
             />
+            <div v-else class="w-full h-full flex items-center justify-center text-muted-foreground">
+              <svg class="h-16 w-16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+            </div>
+          </div>
+          <div v-if="ziel.bilder?.length > 1" class="grid grid-cols-2 gap-4">
+            <div
+              v-for="(bild, index) in ziel.bilder.slice(1, 5)"
+              :key="bild.id"
+              class="aspect-square rounded-lg overflow-hidden bg-muted group"
+              :style="{ animationDelay: `${150 + index * 50}ms` }"
+            >
+              <img
+                :src="`${config.public.apiBase.replace('/api/v1', '')}/media/bilder/${bild.id}`"
+                :alt="ziel.name"
+                class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+              />
+            </div>
           </div>
         </div>
+        
+        <!-- Map -->
+        <Card v-if="ziel.latitude && ziel.longitude" class="h-fit">
+          <CardHeader class="pb-3">
+            <CardTitle>📍 Standort</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div class="aspect-square rounded-lg overflow-hidden bg-muted">
+              <ClientOnly>
+                <MapMarker
+                  :latitude="ziel.latitude"
+                  :longitude="ziel.longitude"
+                  :title="ziel.name"
+                  :address="ziel.adresse"
+                  :zoom="14"
+                />
+                <template #fallback>
+                  <div class="w-full h-full flex items-center justify-center text-muted-foreground">
+                    <svg class="h-12 w-12 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                  </div>
+                </template>
+              </ClientOnly>
+            </div>
+            <div class="mt-3 flex items-center gap-2 text-sm text-muted-foreground">
+              <svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              <span>{{ ziel.adresse || ziel.stadt }}</span>
+            </div>
+            <a 
+              :href="`https://www.google.com/maps/search/?api=1&query=${ziel.latitude},${ziel.longitude}`"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="mt-2 inline-flex items-center gap-2 text-sm text-primary hover:underline"
+            >
+              <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+              </svg>
+              In Google Maps öffnen
+            </a>
+          </CardContent>
+        </Card>
       </div>
     </div>
 
@@ -408,52 +457,6 @@ function isOpenToday(text: string): boolean {
                 Webseite besuchen
               </a>
             </div>
-          </CardContent>
-        </Card>
-
-        <!-- Map with Marker -->
-        <Card v-if="ziel.latitude && ziel.longitude">
-          <CardHeader>
-            <CardTitle>Standort</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div class="aspect-square rounded-lg overflow-hidden bg-muted">
-              <ClientOnly>
-                <MapMarker
-                  :latitude="ziel.latitude"
-                  :longitude="ziel.longitude"
-                  :title="ziel.name"
-                  :address="ziel.adresse"
-                  :zoom="15"
-                />
-                <template #fallback>
-                  <div class="w-full h-full flex items-center justify-center text-muted-foreground">
-                    <svg class="h-12 w-12 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
-                  </div>
-                </template>
-              </ClientOnly>
-            </div>
-            <div class="mt-4 flex items-center gap-2 text-sm text-muted-foreground">
-              <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-              </svg>
-              <span>{{ ziel.adresse || ziel.stadt }}</span>
-            </div>
-            <a 
-              :href="`https://www.google.com/maps/search/?api=1&query=${ziel.latitude},${ziel.longitude}`"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="mt-2 inline-flex items-center gap-2 text-sm text-primary hover:underline"
-            >
-              <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-              </svg>
-              In Google Maps öffnen
-            </a>
           </CardContent>
         </Card>
       </div>
