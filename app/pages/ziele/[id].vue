@@ -263,10 +263,10 @@ function isOpenToday(text: string): boolean {
 
     <!-- Gallery & Map Row -->
     <div class="mb-8 animate-slide-up" style="animation-delay: 100ms">
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:grid-rows-1">
         <!-- Images -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div class="md:col-span-2 aspect-video rounded-lg overflow-hidden bg-muted group">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 min-h-[400px]">
+          <div class="md:col-span-2 rounded-lg overflow-hidden bg-muted group">
             <img
               v-if="getZielImage(ziel)"
               :src="getZielImage(ziel)!.src"
@@ -296,12 +296,12 @@ function isOpenToday(text: string): boolean {
         </div>
         
         <!-- Map -->
-        <Card v-if="ziel.latitude && ziel.longitude" class="h-fit">
+        <Card v-if="ziel.latitude && ziel.longitude" class="flex flex-col">
           <CardHeader class="pb-3">
             <CardTitle>📍 Standort</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div class="aspect-square rounded-lg overflow-hidden bg-muted">
+          <CardContent class="flex-1 flex flex-col">
+            <div class="flex-1 min-h-[280px] rounded-lg overflow-hidden bg-muted">
               <ClientOnly>
                 <MapMarker
                   :latitude="ziel.latitude"
